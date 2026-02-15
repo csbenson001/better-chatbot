@@ -1,8 +1,7 @@
-import type { UIMessage } from "ai";
-import type { ChatMessage } from "app-types/chat";
 import { type ClassValue, clsx } from "clsx";
 import { JSONSchema7 } from "json-schema";
 import { twMerge } from "tailwind-merge";
+import z from "zod";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -303,18 +302,6 @@ export function truncateString(str: string, maxLength: number): string {
   return str.slice(0, maxLength) + "...";
 }
 
-export function convertToUIMessage(message: ChatMessage): UIMessage {
-  const um: UIMessage = {
-    id: message.id,
-    parts: message.parts as UIMessage["parts"],
-    role: message.role as UIMessage["role"],
-    content: "",
-    annotations: message.annotations as UIMessage["annotations"],
-    createdAt: new Date(message.createdAt),
-  };
-  return um;
-}
-
 export async function nextTick() {
   return new Promise((resolve) => setTimeout(resolve, 0));
 }
@@ -433,3 +420,12 @@ export function parseEnvBoolean(value: string | boolean | undefined): boolean {
   }
   return false;
 }
+
+const booleans = ["true", "false", true, false, 1, 0, "1", "0"];
+export const booleanCoerced = z
+  .any()
+  .refine((val) => booleans.includes(val), { message: "must be boolean" })
+  .transform((val) => {
+    if (val === "true" || val === true || val === "1" || val === 1) return true;
+    return false;
+  });

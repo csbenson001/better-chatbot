@@ -90,8 +90,12 @@ export class MCPClient {
       throw new Error("OAuth flow requires a remote MCP server");
 
     if (this.status != "authorizing" || this.oauthProvider?.state() != state) {
-      await this.disconnect();
-      await this.connect(state);
+      if (this.oauthProvider && this.oauthProvider.state() != state) {
+        await this.oauthProvider.adoptState(state);
+      } else {
+        await this.disconnect();
+        await this.connect(state);
+      }
     }
     const finish = (this.transport as StreamableHTTPClientTransport)
       ?.finishAuth;
@@ -107,11 +111,15 @@ export class MCPClient {
 
   getInfo(): MCPServerInfo {
     return {
+      id: this.id,
       name: this.name,
       config: this.serverConfig,
       status: this.status,
       error: this.error,
       toolInfo: this.toolInfo,
+      visibility: "private" as const,
+      enabled: true,
+      userId: "", // This will be filled by the manager
     };
   }
 
@@ -426,10 +434,12 @@ function isUnauthorized(error: any): boolean {
   return (
     error instanceof UnauthorizedError ||
     error?.status === 401 ||
+    error?.code === 401 ||
     error?.message?.includes("401") ||
     error?.message?.includes("Unauthorized") ||
     error?.message?.includes("invalid_token") ||
-    error?.message?.includes("HTTP 401")
+    error?.message?.includes("HTTP 401") ||
+    error?.message?.includes("Authentication required")
   );
 }
 

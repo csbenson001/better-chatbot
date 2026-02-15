@@ -3,6 +3,7 @@ import {
   OAuthTokens,
 } from "@modelcontextprotocol/sdk/shared/auth.js";
 import { Tool } from "ai";
+import { tag } from "lib/tag";
 import { z } from "zod";
 
 export const MCPRemoteConfigZodSchema = z.object({
@@ -39,38 +40,60 @@ export type MCPToolInfo = {
 };
 
 export type MCPServerInfo = {
+  id: string;
   name: string;
-  config: MCPServerConfig;
+  config?: MCPServerConfig; // Optional - hidden from non-owners for security
+  visibility: "public" | "private";
   error?: unknown;
+  enabled: boolean;
+  userId: string;
   status: "connected" | "disconnected" | "loading" | "authorizing";
   toolInfo: MCPToolInfo[];
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  userName?: string | null;
+  userAvatar?: string | null;
+  description?: string; // For ShareableCard compatibility
+  icon?: {
+    value?: string;
+    style?: {
+      backgroundColor?: string;
+    };
+  };
 };
 
 export type McpServerInsert = {
   name: string;
   config: MCPServerConfig;
   id?: string;
+  userId: string;
+  visibility?: "public" | "private";
 };
 export type McpServerSelect = {
   name: string;
   config: MCPServerConfig;
   id: string;
+  userId: string;
+  visibility: "public" | "private";
 };
 
 export type VercelAIMcpTool = Tool & {
   _mcpServerName: string;
   _mcpServerId: string;
   _originToolName: string;
-  __$ref__: "mcp";
 };
+
+export const VercelAIMcpToolTag = tag<VercelAIMcpTool>("mcp");
 
 export interface MCPRepository {
   save(server: McpServerInsert): Promise<McpServerSelect>;
   selectById(id: string): Promise<McpServerSelect | null>;
   selectByServerName(name: string): Promise<McpServerSelect | null>;
   selectAll(): Promise<McpServerSelect[]>;
+  selectAllForUser(userId: string): Promise<McpServerSelect[]>;
   deleteById(id: string): Promise<void>;
   existsByServerName(name: string): Promise<boolean>;
+  updateVisibility(id: string, visibility: "public" | "private"): Promise<void>;
 }
 
 export const McpToolCustomizationZodSchema = z.object({

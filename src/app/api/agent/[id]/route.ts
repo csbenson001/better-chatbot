@@ -4,6 +4,7 @@ import { z } from "zod";
 import { AgentUpdateSchema } from "app-types/agent";
 import { serverCache } from "lib/cache";
 import { CacheKeys } from "lib/cache/cache-keys";
+import { canEditAgent, canDeleteAgent } from "lib/auth/permissions";
 
 export async function GET(
   _request: Request,
@@ -36,6 +37,15 @@ export async function PUT(
     return new Response("Unauthorized", { status: 401 });
   }
 
+  // Check if user has permission to edit agents
+  const canEdit = await canEditAgent();
+  if (!canEdit) {
+    return Response.json(
+      { error: "Only editors and admins can edit agents" },
+      { status: 403 },
+    );
+  }
+
   try {
     const { id } = await params;
     const body = await request.json();
@@ -63,7 +73,7 @@ export async function PUT(
   } catch (error) {
     if (error instanceof z.ZodError) {
       return Response.json(
-        { error: "Invalid input", details: error.errors },
+        { error: "Invalid input", details: error.message },
         { status: 400 },
       );
     }
@@ -81,6 +91,15 @@ export async function DELETE(
 
   if (!session?.user.id) {
     return new Response("Unauthorized", { status: 401 });
+  }
+
+  // Check if user has permission to delete agents
+  const canDelete = await canDeleteAgent();
+  if (!canDelete) {
+    return Response.json(
+      { error: "Only editors and admins can delete agents" },
+      { status: 403 },
+    );
   }
 
   try {

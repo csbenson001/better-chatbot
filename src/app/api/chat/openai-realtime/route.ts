@@ -1,17 +1,16 @@
 import { NextRequest } from "next/server";
 import { getSession } from "auth/server";
-import { AllowedMCPServer, VercelAIMcpTool } from "app-types/mcp";
-import { userRepository } from "lib/db/repository";
+import { VercelAIMcpTool } from "app-types/mcp";
 import {
   filterMcpServerCustomizations,
-  filterMCPToolsByAllowedMCPServers,
+  loadMcpTools,
   mergeSystemPrompt,
 } from "../shared.chat";
 import {
   buildMcpServerCustomizationsSystemPrompt,
   buildSpeechSystemPrompt,
 } from "lib/ai/prompts";
-import { mcpClientsManager } from "lib/ai/mcp/mcp-manager";
+
 import { safe } from "ts-safe";
 import { DEFAULT_VOICE_TOOLS } from "lib/ai/speech";
 import {
@@ -20,6 +19,8 @@ import {
 } from "../actions";
 import globalLogger from "lib/logger";
 import { colorize } from "consola/utils";
+import { getUserPreferences } from "lib/user/server";
+import { ChatMention } from "app-types/chat";
 
 const logger = globalLogger.withDefaults({
   message: colorize("blackBright", `OpenAI Realtime API: `),
@@ -42,47 +43,45 @@ export async function POST(request: NextRequest) {
       return new Response("Unauthorized", { status: 401 });
     }
 
-    const { voice, allowedMcpServers, agentId } = (await request.json()) as {
+    const { voice, mentions, agentId } = (await request.json()) as {
       model: string;
       voice: string;
       agentId?: string;
-      allowedMcpServers: Record<string, AllowedMCPServer>;
+      mentions: ChatMention[];
     };
-
-    const mcpTools = await mcpClientsManager.tools();
 
     const agent = await rememberAgentAction(agentId, session.user.id);
 
-    agent && logger.info(`Agent: ${agent.name}`);
+    agentId && logger.info(`[${agentId}] Agent: ${agent?.name}`);
 
-    const tools = safe(mcpTools)
-      .map((tools) => {
-        return filterMCPToolsByAllowedMCPServers(tools, allowedMcpServers);
-      })
-      .orElse(undefined);
+    const enabledMentions = agent ? agent.instructions.mentions : mentions;
 
-    if (tools) {
-      logger.info(`Tools: ${Object.keys(tools).join(", ")}`);
+    const allowedMcpTools = await loadMcpTools({ mentions: enabledMentions });
+
+    const toolNames = Object.keys(allowedMcpTools ?? {});
+
+    if (toolNames.length > 0) {
+      logger.info(`${toolNames.length} tools found`);
     } else {
       logger.info(`No tools found`);
     }
 
-    const userPreferences = await userRepository.getPreferences(
-      session.user.id,
-    );
+    const userPreferences = await getUserPreferences(session.user.id);
 
     const mcpServerCustomizations = await safe()
       .map(() => {
-        if (Object.keys(tools ?? {}).length === 0)
+        if (Object.keys(allowedMcpTools ?? {}).length === 0)
           throw new Error("No tools found");
         return rememberMcpServerCustomizationsAction(session.user.id);
       })
-      .map((v) => filterMcpServerCustomizations(tools!, v))
+      .map((v) => filterMcpServerCustomizations(allowedMcpTools!, v))
       .orElse({});
 
-    const openAITools = Object.entries(tools ?? {}).map(([name, tool]) => {
-      return vercelAIToolToOpenAITool(tool, name);
-    });
+    const openAITools = Object.entries(allowedMcpTools ?? {}).map(
+      ([name, tool]) => {
+        return vercelAIToolToOpenAITool(tool, name);
+      },
+    );
 
     const systemPrompt = mergeSystemPrompt(
       buildSpeechSystemPrompt(
@@ -92,6 +91,8 @@ export async function POST(request: NextRequest) {
       ),
       buildMcpServerCustomizationsSystemPrompt(mcpServerCustomizations),
     );
+
+    const bindingTools = [...openAITools, ...DEFAULT_VOICE_TOOLS];
 
     const r = await fetch("https://api.openai.com/v1/realtime/sessions", {
       method: "POST",
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest) {
           model: "whisper-1",
         },
         instructions: systemPrompt,
-        tools: [...openAITools, ...DEFAULT_VOICE_TOOLS],
+        tools: bindingTools,
       }),
     });
 
@@ -130,7 +131,7 @@ function vercelAIToolToOpenAITool(tool: VercelAIMcpTool, name: string) {
     name,
     type: "function",
     description: tool.description,
-    parameters: tool.parameters?.jsonSchema ?? {
+    parameters: (tool.inputSchema as any).jsonSchema ?? {
       type: "object",
       properties: {},
       required: [],

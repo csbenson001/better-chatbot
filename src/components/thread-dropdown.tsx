@@ -2,7 +2,14 @@
 import { deleteThreadAction, updateThreadAction } from "@/app/api/chat/actions";
 import { appStore } from "@/app/store";
 import { useToRef } from "@/hooks/use-latest";
-import { Archive, ChevronRight, Loader, PencilLine, Trash } from "lucide-react";
+import {
+  Archive,
+  ChevronRight,
+  Loader,
+  PencilLine,
+  Trash,
+  UploadIcon,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { type PropsWithChildren, useState } from "react";
 import { toast } from "sonner";
@@ -37,6 +44,7 @@ import {
 import { useTranslations } from "next-intl";
 import { addItemToArchiveAction } from "@/app/api/archive/actions";
 import { useShallow } from "zustand/shallow";
+import { ChatExportPopup } from "./export/chat-export-popup";
 
 type Props = PropsWithChildren<{
   threadId: string;
@@ -126,7 +134,7 @@ export function ThreadDropdown({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>{children}</PopoverTrigger>
-      <PopoverContent className=" p-0 w-[220px]" side={side} align={align}>
+      <PopoverContent className="p-0 w-[220px]" side={side} align={align}>
         <Command>
           <div className="flex items-center gap-2 px-2 py-1 text-xs pt-2 text-muted-foreground ml-1">
             {t("Chat.Thread.chat")}
@@ -134,6 +142,14 @@ export function ThreadDropdown({
 
           <CommandList>
             <CommandGroup>
+              <CommandItem className="cursor-pointer p-0">
+                <ChatExportPopup threadId={threadId}>
+                  <div className="flex items-center gap-2 w-full px-2 py-1 rounded">
+                    <UploadIcon className="text-foreground" />
+                    <span className="mr-4">{t("Chat.Thread.exportChat")}</span>
+                  </div>
+                </ChatExportPopup>
+              </CommandItem>
               <CommandItem className="cursor-pointer p-0">
                 <UpdateThreadNameDialog
                   initialTitle={beforeTitle ?? ""}
@@ -145,6 +161,7 @@ export function ThreadDropdown({
                   </div>
                 </UpdateThreadNameDialog>
               </CommandItem>
+
               <CommandItem className="cursor-pointer p-0">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

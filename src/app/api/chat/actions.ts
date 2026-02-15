@@ -5,7 +5,7 @@ import {
   generateText,
   jsonSchema,
   LanguageModel,
-  type Message,
+  type UIMessage,
 } from "ai";
 
 import {
@@ -17,6 +17,7 @@ import type { ChatModel, ChatThread } from "app-types/chat";
 
 import {
   agentRepository,
+  chatExportRepository,
   chatRepository,
   mcpMcpToolCustomizationRepository,
   mcpServerCustomizationRepository,
@@ -46,8 +47,11 @@ export async function getUserId() {
 export async function generateTitleFromUserMessageAction({
   message,
   model,
-}: { message: Message; model: LanguageModel }) {
-  await getSession();
+}: { message: UIMessage; model: LanguageModel }) {
+  const session = await getSession();
+  if (!session) {
+    throw new Error("Unauthorized");
+  }
   const prompt = toAny(message.parts?.at(-1))?.text || "unknown";
 
   const { text: title } = await generateText({
@@ -61,6 +65,9 @@ export async function generateTitleFromUserMessageAction({
 
 export async function selectThreadWithMessagesAction(threadId: string) {
   const session = await getSession();
+  if (!session) {
+    throw new Error("Unauthorized");
+  }
   const thread = await chatRepository.selectThread(threadId);
 
   if (!thread) {
@@ -199,7 +206,7 @@ export async function generateObjectAction({
   const result = await generateObject({
     model: customModelProvider.getModel(model),
     system: prompt.system,
-    prompt: prompt.user,
+    prompt: prompt.user || "",
     schema: jsonSchemaToZod(schema),
   });
   return result.object;
@@ -217,4 +224,25 @@ export async function rememberAgentAction(
     await serverCache.set(key, cachedAgent);
   }
   return cachedAgent as Agent | undefined;
+}
+
+export async function exportChatAction({
+  threadId,
+  expiresAt,
+}: {
+  threadId: string;
+  expiresAt?: Date;
+}) {
+  const userId = await getUserId();
+
+  const isAccess = await chatRepository.checkAccess(threadId, userId);
+  if (!isAccess) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
+  return await chatExportRepository.exportChat({
+    threadId,
+    exporterId: userId,
+    expiresAt: expiresAt ?? undefined,
+  });
 }

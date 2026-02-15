@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -11,14 +15,13 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "noUnusedLocals": true,
     "strictPropertyInitialization": false,
     "noUnusedParameters": false,
-    "noUncheckedSideEffectImports": false,
     "noImplicitAny": false,
     "plugins": [
       {
@@ -26,13 +29,27 @@
       }
     ],
     "paths": {
-      "ui/*": ["./src/components/ui/*"],
-      "auth/*": ["./src/lib/auth/*"],
-      "app-types/*": ["./src/types/*"],
-      "logger": ["./src/lib/logger.ts"],
-      "lib/*": ["./src/lib/*"],
-      "load-env": ["./src/lib/load-env.ts"],
-      "@/*": ["./src/*"]
+      "ui/*": [
+        "./src/components/ui/*"
+      ],
+      "auth/*": [
+        "./src/lib/auth/*"
+      ],
+      "app-types/*": [
+        "./src/types/*"
+      ],
+      "logger": [
+        "./src/lib/logger.ts"
+      ],
+      "lib/*": [
+        "./src/lib/*"
+      ],
+      "load-env": [
+        "./src/lib/load-env.ts"
+      ],
+      "@/*": [
+        "./src/*"
+      ]
     }
   },
   "include": [
@@ -43,7 +60,11 @@
     "src/types/global.d.ts",
     "vitest.setup.ts",
     "vitest.config.ts",
-    "drizzle.config.ts"
+    "drizzle.config.ts",
+    "tests/**/*.ts",
+    ".next/dev/types/**/*.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules"
+  ]
 }

@@ -12,6 +12,10 @@
 
 # testing
 /coverage
+/tests/.auth
+test-results/
+playwright-report/
+.env.test
 
 # next.js
 /.next/
@@ -56,6 +60,8 @@ local-data
 openai-compatible.config.ts
 certificates
 
+
 # build caches
 node-compile-cache/
 tsx-0/
+public/uploads

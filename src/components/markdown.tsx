@@ -1,10 +1,22 @@
-import React, { memo, PropsWithChildren } from "react";
+"use client";
+
+import { memo, PropsWithChildren } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
 import { PreBlock } from "./pre-block";
 import { isJson, isString, toAny } from "lib/utils";
 import JsonView from "ui/json-view";
 import { LinkIcon } from "lucide-react";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from "ui/table";
 
 const FadeIn = memo(({ children }: PropsWithChildren) => {
   return <span className="fade-in animate-in duration-1000">{children} </span>;
@@ -21,6 +33,36 @@ export const WordByWordFadeIn = memo(({ children }: PropsWithChildren) => {
 });
 WordByWordFadeIn.displayName = "WordByWordFadeIn";
 const components: Partial<Components> = {
+  table: ({ node, children, ...props }) => {
+    return (
+      <div className="my-4">
+        <Table {...props}>{children}</Table>
+      </div>
+    );
+  },
+  thead: ({ node, children, ...props }) => {
+    return <TableHeader {...props}>{children}</TableHeader>;
+  },
+  tbody: ({ node, children, ...props }) => {
+    return <TableBody {...props}>{children}</TableBody>;
+  },
+  tr: ({ node, children, ...props }) => {
+    return <TableRow {...props}>{children}</TableRow>;
+  },
+  th: ({ node, children, ...props }) => {
+    return (
+      <TableHead {...props}>
+        <WordByWordFadeIn>{children}</WordByWordFadeIn>
+      </TableHead>
+    );
+  },
+  td: ({ node, children, ...props }) => {
+    return (
+      <TableCell {...props}>
+        <WordByWordFadeIn>{children}</WordByWordFadeIn>
+      </TableCell>
+    );
+  },
   code: ({ children }) => {
     return (
       <code className="text-sm rounded-md bg-accent text-primary py-1 px-2 mx-0.5">
@@ -67,7 +109,7 @@ const components: Partial<Components> = {
   },
   ul: ({ node, children, ...props }) => {
     return (
-      <ul className="px-8 list-decimal list-outside" {...props}>
+      <ul className="px-8 list-outside list-disc" {...props}>
         {children}
       </ul>
     );
@@ -150,7 +192,11 @@ const NonMemoizedMarkdown = ({ children }: { children: string }) => {
       {isJson(children) ? (
         <JsonView data={children} />
       ) : (
-        <ReactMarkdown components={components} remarkPlugins={[remarkGfm]}>
+        <ReactMarkdown
+          components={components}
+          remarkPlugins={[remarkGfm, remarkMath]}
+          rehypePlugins={[rehypeKatex]}
+        >
           {children}
         </ReactMarkdown>
       )}
