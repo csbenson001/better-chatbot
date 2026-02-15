@@ -37,10 +37,10 @@ type SearchResult = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  indexed: "bg-green-100 text-green-800",
-  processing: "bg-yellow-100 text-yellow-800",
-  pending: "bg-gray-100 text-gray-800",
-  failed: "bg-red-100 text-red-800",
+  indexed: "bg-green-500/10 text-green-400",
+  processing: "bg-yellow-500/10 text-yellow-400",
+  pending: "bg-zinc-700 text-zinc-300",
+  failed: "bg-red-500/10 text-red-400",
 };
 
 const DOCUMENT_TYPES = [
@@ -229,34 +229,34 @@ export default function AdminKnowledgePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-gray-500">Loading knowledge base...</div>
+        <div className="text-zinc-500">Loading knowledge base...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-semibold text-zinc-100">
               Knowledge Base Management
             </h1>
-            <p className="text-gray-500 mt-1">
+            <p className="text-sm text-zinc-400 mt-1">
               Manage documents, categories, and vector search
             </p>
           </div>
           <div className="flex gap-3">
             <button
               onClick={() => setShowAddCategory(true)}
-              className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm font-medium text-zinc-300 hover:bg-zinc-700 transition-colors"
             >
               Add Category
             </button>
             <button
               onClick={() => setShowAddForm(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
             >
               Add Document
             </button>
@@ -265,31 +265,31 @@ export default function AdminKnowledgePage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
-          <div className="bg-white rounded-lg border p-4">
-            <div className="text-sm text-gray-500">Total Documents</div>
-            <div className="text-2xl font-bold text-gray-900">{totalDocs}</div>
+          <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-4">
+            <div className="text-sm text-zinc-400">Total Documents</div>
+            <div className="text-2xl font-bold text-zinc-100">{totalDocs}</div>
           </div>
-          <div className="bg-white rounded-lg border p-4">
-            <div className="text-sm text-gray-500">Indexed</div>
-            <div className="text-2xl font-bold text-green-600">
+          <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-4">
+            <div className="text-sm text-zinc-400">Indexed</div>
+            <div className="text-2xl font-bold text-green-400">
               {statusCounts.indexed}
             </div>
           </div>
-          <div className="bg-white rounded-lg border p-4">
-            <div className="text-sm text-gray-500">Processing</div>
-            <div className="text-2xl font-bold text-yellow-600">
+          <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-4">
+            <div className="text-sm text-zinc-400">Processing</div>
+            <div className="text-2xl font-bold text-yellow-400">
               {statusCounts.processing}
             </div>
           </div>
-          <div className="bg-white rounded-lg border p-4">
-            <div className="text-sm text-gray-500">Pending</div>
-            <div className="text-2xl font-bold text-gray-600">
+          <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-4">
+            <div className="text-sm text-zinc-400">Pending</div>
+            <div className="text-2xl font-bold text-zinc-300">
               {statusCounts.pending}
             </div>
           </div>
-          <div className="bg-white rounded-lg border p-4">
-            <div className="text-sm text-gray-500">Failed</div>
-            <div className="text-2xl font-bold text-red-600">
+          <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-4">
+            <div className="text-sm text-zinc-400">Failed</div>
+            <div className="text-2xl font-bold text-red-400">
               {statusCounts.failed}
             </div>
           </div>
@@ -304,12 +304,12 @@ export default function AdminKnowledgePage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               placeholder="Search knowledge base with semantic search..."
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-4 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
             />
             <button
               onClick={handleSearch}
               disabled={isSearching}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
               {isSearching ? "Searching..." : "Search"}
             </button>
@@ -319,24 +319,24 @@ export default function AdminKnowledgePage() {
         {/* Search Results */}
         {searchResults.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            <h2 className="text-lg font-semibold text-zinc-100 mb-4">
               Search Results ({searchResults.length})
             </h2>
             <div className="space-y-3">
               {searchResults.map((result) => (
                 <div
                   key={result.chunkId}
-                  className="bg-white rounded-lg border p-4"
+                  className="bg-zinc-900 rounded-lg border border-zinc-800 p-4"
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-medium text-gray-900">
+                    <h3 className="font-medium text-zinc-100">
                       {result.documentTitle}
                     </h3>
-                    <span className="text-sm text-blue-600 font-medium">
+                    <span className="text-sm text-blue-400 font-medium">
                       Score: {(result.score * 100).toFixed(1)}%
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 line-clamp-3">
+                  <p className="text-sm text-zinc-400 line-clamp-3">
                     {result.content}
                   </p>
                 </div>
@@ -348,18 +348,18 @@ export default function AdminKnowledgePage() {
         <div className="flex gap-6">
           {/* Category Sidebar */}
           <div className="w-64 flex-shrink-0">
-            <div className="bg-white rounded-lg border p-4">
-              <h2 className="text-sm font-semibold text-gray-900 mb-3">
+            <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-4">
+              <h2 className="text-sm font-semibold text-zinc-100 mb-3">
                 Categories
               </h2>
               <ul className="space-y-1">
                 <li>
                   <button
                     onClick={() => setSelectedCategoryId(null)}
-                    className={`w-full text-left px-3 py-2 rounded text-sm ${
+                    className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${
                       selectedCategoryId === null
-                        ? "bg-blue-50 text-blue-700 font-medium"
-                        : "text-gray-600 hover:bg-gray-50"
+                        ? "bg-blue-500/10 text-blue-400 font-medium"
+                        : "text-zinc-400 hover:bg-zinc-800"
                     }`}
                   >
                     All Documents
@@ -369,10 +369,10 @@ export default function AdminKnowledgePage() {
                   <li key={cat.id}>
                     <button
                       onClick={() => setSelectedCategoryId(cat.id)}
-                      className={`w-full text-left px-3 py-2 rounded text-sm ${
+                      className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${
                         selectedCategoryId === cat.id
-                          ? "bg-blue-50 text-blue-700 font-medium"
-                          : "text-gray-600 hover:bg-gray-50"
+                          ? "bg-blue-500/10 text-blue-400 font-medium"
+                          : "text-zinc-400 hover:bg-zinc-800"
                       }`}
                     >
                       {cat.name}
@@ -385,36 +385,36 @@ export default function AdminKnowledgePage() {
 
           {/* Document List */}
           <div className="flex-1">
-            <div className="bg-white rounded-lg border">
-              <div className="px-4 py-3 border-b">
-                <h2 className="text-sm font-semibold text-gray-900">
+            <div className="bg-zinc-900 rounded-lg border border-zinc-800">
+              <div className="px-4 py-3 border-b border-zinc-800">
+                <h2 className="text-sm font-semibold text-zinc-100">
                   Documents
                 </h2>
               </div>
               {documents.length === 0 ? (
-                <div className="p-8 text-center text-gray-500">
+                <div className="p-8 text-center text-zinc-500">
                   No documents found. Click &quot;Add Document&quot; to get
                   started.
                 </div>
               ) : (
-                <div className="divide-y">
+                <div className="divide-y divide-zinc-800">
                   {documents.map((doc) => (
                     <div
                       key={doc.id}
-                      className="px-4 py-3 flex items-center justify-between hover:bg-gray-50"
+                      className="px-4 py-3 flex items-center justify-between hover:bg-zinc-800/50 transition-colors"
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-medium text-gray-900 truncate">
+                          <h3 className="text-sm font-medium text-zinc-100 truncate">
                             {doc.title}
                           </h3>
                           <span
-                            className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${STATUS_COLORS[doc.status] ?? "bg-gray-100 text-gray-800"}`}
+                            className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${STATUS_COLORS[doc.status] ?? "bg-zinc-700 text-zinc-300"}`}
                           >
                             {doc.status}
                           </span>
                         </div>
-                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                        <div className="flex items-center gap-3 mt-1 text-xs text-zinc-500">
                           <span className="uppercase">{doc.documentType}</span>
                           <span>
                             Created{" "}
@@ -424,7 +424,7 @@ export default function AdminKnowledgePage() {
                       </div>
                       <button
                         onClick={() => handleDeleteDocument(doc.id)}
-                        className="ml-4 text-sm text-red-600 hover:text-red-800"
+                        className="ml-4 text-sm text-red-400 hover:text-red-300 transition-colors"
                       >
                         Delete
                       </button>
@@ -439,16 +439,16 @@ export default function AdminKnowledgePage() {
 
       {/* Add Document Modal */}
       {showAddForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="px-6 py-4 border-b">
-              <h2 className="text-lg font-semibold text-gray-900">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="px-6 py-4 border-b border-zinc-800">
+              <h2 className="text-lg font-semibold text-zinc-100">
                 Add Document
               </h2>
             </div>
             <form onSubmit={handleAddDocument} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-zinc-300 mb-1">
                   Title
                 </label>
                 <input
@@ -456,12 +456,12 @@ export default function AdminKnowledgePage() {
                   required
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
                   placeholder="Document title"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-zinc-300 mb-1">
                   Content
                 </label>
                 <textarea
@@ -469,19 +469,19 @@ export default function AdminKnowledgePage() {
                   value={formContent}
                   onChange={(e) => setFormContent(e.target.value)}
                   rows={10}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
                   placeholder="Paste or type document content..."
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-zinc-300 mb-1">
                     Category
                   </label>
                   <select
                     value={formCategoryId}
                     onChange={(e) => setFormCategoryId(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
                   >
                     <option value="">No Category</option>
                     {categories.map((cat) => (
@@ -492,13 +492,13 @@ export default function AdminKnowledgePage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-zinc-300 mb-1">
                     Document Type
                   </label>
                   <select
                     value={formDocumentType}
                     onChange={(e) => setFormDocumentType(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
                   >
                     {DOCUMENT_TYPES.map((type) => (
                       <option key={type} value={type}>
@@ -512,14 +512,14 @@ export default function AdminKnowledgePage() {
                 <button
                   type="button"
                   onClick={() => setShowAddForm(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-zinc-700 rounded-lg text-sm font-medium text-zinc-300 hover:bg-zinc-800 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={formSubmitting}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors"
                 >
                   {formSubmitting ? "Adding..." : "Add Document"}
                 </button>
@@ -531,16 +531,16 @@ export default function AdminKnowledgePage() {
 
       {/* Add Category Modal */}
       {showAddCategory && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
-            <div className="px-6 py-4 border-b">
-              <h2 className="text-lg font-semibold text-gray-900">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg shadow-xl w-full max-w-md">
+            <div className="px-6 py-4 border-b border-zinc-800">
+              <h2 className="text-lg font-semibold text-zinc-100">
                 Add Category
               </h2>
             </div>
             <form onSubmit={handleAddCategory} className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-zinc-300 mb-1">
                   Name
                 </label>
                 <input
@@ -548,19 +548,19 @@ export default function AdminKnowledgePage() {
                   required
                   value={categoryName}
                   onChange={(e) => setCategoryName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
                   placeholder="Category name"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-zinc-300 mb-1">
                   Description
                 </label>
                 <textarea
                   value={categoryDescription}
                   onChange={(e) => setCategoryDescription(e.target.value)}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-zinc-100 placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500/40"
                   placeholder="Optional description"
                 />
               </div>
@@ -568,13 +568,13 @@ export default function AdminKnowledgePage() {
                 <button
                   type="button"
                   onClick={() => setShowAddCategory(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-zinc-700 rounded-lg text-sm font-medium text-zinc-300 hover:bg-zinc-800 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
                 >
                   Add Category
                 </button>
