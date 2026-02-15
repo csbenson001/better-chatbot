@@ -30,3 +30,19 @@ import { pgBillingRepository } from "./pg/repositories/billing-repository.pg";
 export const platformRepository = pgPlatformRepository;
 export const salesHunterRepository = pgSalesHunterRepository;
 export const billingRepository = pgBillingRepository;
+
+import { pgRBACRepository } from "./pg/repositories/rbac-repository.pg";
+import { pgKnowledgeRepository } from "./pg/repositories/knowledge-repository.pg";
+import { pgCompanyIntelligenceRepository } from "./pg/repositories/company-intelligence-repository.pg";
+import { pgIndustryRepository } from "./pg/repositories/industry-repository.pg";
+import { pgProspectingRepository } from "./pg/repositories/prospecting-repository.pg";
+import { pgContactIntelligenceRepository } from "./pg/repositories/contact-intelligence-repository.pg";
+import { pgStateResearchRepository } from "./pg/repositories/state-research-repository.pg";
+
+export const rbacRepository = pgRBACRepository;
+export const knowledgeRepository = pgKnowledgeRepository;
+export const companyIntelligenceRepository = pgCompanyIntelligenceRepository;
+export const industryRepository = pgIndustryRepository;
+export const prospectingRepository = pgProspectingRepository;
+export const contactIntelligenceRepository = pgContactIntelligenceRepository;
+export const stateResearchRepository = pgStateResearchRepository;
