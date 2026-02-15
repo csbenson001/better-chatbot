@@ -59,4 +59,9 @@ local-data
 .mcp-config.json
 openai-compatible.config.ts
 certificates
+
+
+# build caches
+node-compile-cache/
+tsx-0/
 public/uploads
