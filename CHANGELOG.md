@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.3](https://github.com/csbenson001/better-chatbot/compare/v1.5.2...v1.5.3) (2026-02-15)
+
+
+### Bug Fixes
+
+* apply dark theme to admin knowledge base page ([856916e](https://github.com/csbenson001/better-chatbot/commit/856916e023f337c14174d6023b14053b03af65fb))
+
 ## 1.5.2 (2026-02-15)
 
 
