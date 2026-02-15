@@ -45,6 +45,35 @@ import type {
   ResearchFinding,
   AgentLogEntry,
 } from "app-types/state-research";
+import type {
+  BriefStatus,
+  BriefType,
+  BriefSection,
+  AlertSeverity,
+  AlertStatus,
+  AlertCategory,
+  AlertRuleConfig,
+  WorkflowRunStatus,
+  WorkflowStepConfig,
+  WorkflowStepResult,
+  PlaybookType,
+  PlaybookStatus,
+  PlaybookSection,
+  CompositeSignalType,
+  ComponentSignal,
+  CostCategory,
+  ROIProjection,
+  SequenceStatus,
+  OutreachStep,
+  HealthStatus,
+  HealthFactor,
+  ExpansionOpportunity,
+  DealOutcome,
+  StageRecord,
+  DealFactor,
+  BuyingCommitteeMember,
+  Relationship,
+} from "app-types/sales-intelligence";
 import { sql } from "drizzle-orm";
 import {
   pgTable,
@@ -2008,6 +2037,636 @@ export const ResearchAgentConfigSchema = pgTable(
   ],
 );
 
+// ============================================================================
+// SALES INTELLIGENCE TABLES
+// ============================================================================
+
+// --- Sales Brief Generator ---
+
+export const SalesBriefSchema = pgTable(
+  "sales_brief",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => TenantSchema.id, { onDelete: "cascade" }),
+    prospectId: uuid("prospect_id").references(() => ProspectSchema.id, {
+      onDelete: "set null",
+    }),
+    leadId: uuid("lead_id").references(() => LeadSchema.id, {
+      onDelete: "set null",
+    }),
+    companyId: uuid("company_id").references(() => CompanyProfileSchema.id, {
+      onDelete: "set null",
+    }),
+    briefType: varchar("brief_type", {
+      enum: [
+        "prospect-overview",
+        "pre-meeting",
+        "quarterly-review",
+        "competitive-analysis",
+        "expansion-opportunity",
+      ],
+    })
+      .notNull()
+      .$type<BriefType>(),
+    title: varchar("title", { length: 500 }).notNull(),
+    content: text("content").notNull().default(""),
+    sections: json("sections").notNull().default([]).$type<BriefSection[]>(),
+    status: varchar("status", {
+      enum: ["pending", "generating", "completed", "failed"],
+    })
+      .notNull()
+      .default("pending")
+      .$type<BriefStatus>(),
+    generatedBy: uuid("generated_by").references(() => UserSchema.id, {
+      onDelete: "set null",
+    }),
+    metadata: json("metadata")
+      .notNull()
+      .default({})
+      .$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [
+    index("sales_brief_tenant_idx").on(t.tenantId),
+    index("sales_brief_prospect_idx").on(t.prospectId),
+    index("sales_brief_lead_idx").on(t.leadId),
+    index("sales_brief_status_idx").on(t.tenantId, t.status),
+  ],
+);
+
+// --- Alert System ---
+
+export const AlertSchema = pgTable(
+  "alert",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => TenantSchema.id, { onDelete: "cascade" }),
+    prospectId: uuid("prospect_id").references(() => ProspectSchema.id, {
+      onDelete: "set null",
+    }),
+    leadId: uuid("lead_id").references(() => LeadSchema.id, {
+      onDelete: "set null",
+    }),
+    category: varchar("category", {
+      enum: [
+        "regulatory-change",
+        "compliance-violation",
+        "permit-expiry",
+        "competitor-activity",
+        "buying-signal",
+        "contact-change",
+        "market-shift",
+        "expansion-signal",
+      ],
+    })
+      .notNull()
+      .$type<AlertCategory>(),
+    severity: varchar("severity", {
+      enum: ["info", "low", "medium", "high", "critical"],
+    })
+      .notNull()
+      .$type<AlertSeverity>(),
+    status: varchar("status", {
+      enum: ["active", "acknowledged", "dismissed", "resolved"],
+    })
+      .notNull()
+      .default("active")
+      .$type<AlertStatus>(),
+    title: varchar("title", { length: 500 }).notNull(),
+    description: text("description").notNull(),
+    sourceUrl: text("source_url"),
+    sourceType: varchar("source_type", { length: 100 }),
+    actionItems: json("action_items").notNull().default([]).$type<string[]>(),
+    metadata: json("metadata")
+      .notNull()
+      .default({})
+      .$type<Record<string, unknown>>(),
+    acknowledgedBy: uuid("acknowledged_by").references(() => UserSchema.id, {
+      onDelete: "set null",
+    }),
+    acknowledgedAt: timestamp("acknowledged_at"),
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [
+    index("alert_tenant_idx").on(t.tenantId),
+    index("alert_category_idx").on(t.tenantId, t.category),
+    index("alert_severity_idx").on(t.tenantId, t.severity),
+    index("alert_status_idx").on(t.tenantId, t.status),
+    index("alert_prospect_idx").on(t.prospectId),
+    index("alert_created_idx").on(t.createdAt),
+  ],
+);
+
+export const AlertRuleSchema = pgTable(
+  "alert_rule",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => TenantSchema.id, { onDelete: "cascade" }),
+    name: varchar("name", { length: 200 }).notNull(),
+    description: text("description"),
+    category: varchar("category", {
+      enum: [
+        "regulatory-change",
+        "compliance-violation",
+        "permit-expiry",
+        "competitor-activity",
+        "buying-signal",
+        "contact-change",
+        "market-shift",
+        "expansion-signal",
+      ],
+    })
+      .notNull()
+      .$type<AlertCategory>(),
+    conditions: json("conditions")
+      .notNull()
+      .default([])
+      .$type<AlertRuleConfig[]>(),
+    severity: varchar("severity", {
+      enum: ["info", "low", "medium", "high", "critical"],
+    })
+      .notNull()
+      .default("medium")
+      .$type<AlertSeverity>(),
+    notifyChannels: json("notify_channels")
+      .notNull()
+      .default([])
+      .$type<string[]>(),
+    enabled: boolean("enabled").notNull().default(true),
+    metadata: json("metadata")
+      .notNull()
+      .default({})
+      .$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [
+    index("alert_rule_tenant_idx").on(t.tenantId),
+    index("alert_rule_category_idx").on(t.tenantId, t.category),
+  ],
+);
+
+// --- Autonomous Research Workflows ---
+
+export const ResearchWorkflowSchema = pgTable(
+  "research_workflow",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => TenantSchema.id, { onDelete: "cascade" }),
+    name: varchar("name", { length: 300 }).notNull(),
+    description: text("description"),
+    steps: json("steps").notNull().default([]).$type<WorkflowStepConfig[]>(),
+    schedule: text("schedule"),
+    enabled: boolean("enabled").notNull().default(true),
+    lastRunId: uuid("last_run_id"),
+    metadata: json("metadata")
+      .notNull()
+      .default({})
+      .$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [index("research_wf_tenant_idx").on(t.tenantId)],
+);
+
+export const WorkflowRunSchema = pgTable(
+  "workflow_run",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    workflowId: uuid("workflow_id")
+      .notNull()
+      .references(() => ResearchWorkflowSchema.id, { onDelete: "cascade" }),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => TenantSchema.id, { onDelete: "cascade" }),
+    status: varchar("status", {
+      enum: ["pending", "running", "paused", "completed", "failed", "canceled"],
+    })
+      .notNull()
+      .default("pending")
+      .$type<WorkflowRunStatus>(),
+    currentStep: integer("current_step").notNull().default(0),
+    stepResults: json("step_results")
+      .notNull()
+      .default([])
+      .$type<WorkflowStepResult[]>(),
+    startedAt: timestamp("started_at"),
+    completedAt: timestamp("completed_at"),
+    errorMessage: text("error_message"),
+    metadata: json("metadata")
+      .notNull()
+      .default({})
+      .$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [
+    index("wf_run_workflow_idx").on(t.workflowId),
+    index("wf_run_tenant_idx").on(t.tenantId),
+    index("wf_run_status_idx").on(t.tenantId, t.status),
+  ],
+);
+
+// --- Relationship Mapping & Buying Committee ---
+
+export const RelationshipMapSchema = pgTable(
+  "relationship_map",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => TenantSchema.id, { onDelete: "cascade" }),
+    prospectId: uuid("prospect_id").references(() => ProspectSchema.id, {
+      onDelete: "set null",
+    }),
+    leadId: uuid("lead_id").references(() => LeadSchema.id, {
+      onDelete: "set null",
+    }),
+    companyName: varchar("company_name", { length: 500 }).notNull(),
+    contacts: json("contacts")
+      .notNull()
+      .default([])
+      .$type<BuyingCommitteeMember[]>(),
+    relationships: json("relationships")
+      .notNull()
+      .default([])
+      .$type<Relationship[]>(),
+    dealStrategy: text("deal_strategy"),
+    metadata: json("metadata")
+      .notNull()
+      .default({})
+      .$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [
+    index("rel_map_tenant_idx").on(t.tenantId),
+    index("rel_map_prospect_idx").on(t.prospectId),
+    index("rel_map_lead_idx").on(t.leadId),
+  ],
+);
+
+// --- Vertical Sales Playbooks & Battle Cards ---
+
+export const SalesPlaybookSchema = pgTable(
+  "sales_playbook",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => TenantSchema.id, { onDelete: "cascade" }),
+    industryId: uuid("industry_id").references(() => IndustrySchema.id, {
+      onDelete: "set null",
+    }),
+    type: varchar("type", {
+      enum: [
+        "industry-playbook",
+        "competitor-battle-card",
+        "objection-handler",
+        "roi-calculator",
+        "discovery-guide",
+        "demo-script",
+      ],
+    })
+      .notNull()
+      .$type<PlaybookType>(),
+    title: varchar("title", { length: 500 }).notNull(),
+    content: text("content").notNull().default(""),
+    sections: json("sections").notNull().default([]).$type<PlaybookSection[]>(),
+    targetPersona: varchar("target_persona", { length: 200 }),
+    status: varchar("status", {
+      enum: ["draft", "published", "archived"],
+    })
+      .notNull()
+      .default("draft")
+      .$type<PlaybookStatus>(),
+    version: integer("version").notNull().default(1),
+    tags: json("tags").notNull().default([]).$type<string[]>(),
+    metadata: json("metadata")
+      .notNull()
+      .default({})
+      .$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [
+    index("playbook_tenant_idx").on(t.tenantId),
+    index("playbook_industry_idx").on(t.industryId),
+    index("playbook_type_idx").on(t.tenantId, t.type),
+    index("playbook_status_idx").on(t.tenantId, t.status),
+  ],
+);
+
+// --- Buying Signal Detection & Deal Timing ---
+
+export const BuyingSignalSchema = pgTable(
+  "buying_signal",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => TenantSchema.id, { onDelete: "cascade" }),
+    prospectId: uuid("prospect_id")
+      .notNull()
+      .references(() => ProspectSchema.id, { onDelete: "cascade" }),
+    signalType: varchar("signal_type", {
+      enum: [
+        "high-intent",
+        "expansion-ready",
+        "compliance-urgency",
+        "competitive-displacement",
+        "budget-cycle",
+        "leadership-transition",
+        "growth-trajectory",
+      ],
+    })
+      .notNull()
+      .$type<CompositeSignalType>(),
+    title: varchar("title", { length: 500 }).notNull(),
+    description: text("description").notNull(),
+    compositeScore: integer("composite_score").notNull().default(50),
+    componentSignals: json("component_signals")
+      .notNull()
+      .default([])
+      .$type<ComponentSignal[]>(),
+    recommendedAction: text("recommended_action").notNull(),
+    optimalTiming: text("optimal_timing"),
+    expiresAt: timestamp("expires_at"),
+    metadata: json("metadata")
+      .notNull()
+      .default({})
+      .$type<Record<string, unknown>>(),
+    detectedAt: timestamp("detected_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [
+    index("buying_signal_tenant_idx").on(t.tenantId),
+    index("buying_signal_prospect_idx").on(t.prospectId),
+    index("buying_signal_type_idx").on(t.tenantId, t.signalType),
+    index("buying_signal_score_idx").on(t.tenantId, t.compositeScore),
+    index("buying_signal_detected_idx").on(t.detectedAt),
+  ],
+);
+
+// --- Compliance Burden Calculator ---
+
+export const ComplianceBurdenSchema = pgTable(
+  "compliance_burden",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => TenantSchema.id, { onDelete: "cascade" }),
+    prospectId: uuid("prospect_id")
+      .notNull()
+      .references(() => ProspectSchema.id, { onDelete: "cascade" }),
+    facilityCount: integer("facility_count").notNull().default(1),
+    regulatoryPrograms: json("regulatory_programs")
+      .notNull()
+      .default([])
+      .$type<string[]>(),
+    estimatedAnnualCost: numeric("estimated_annual_cost").notNull(),
+    costBreakdown: json("cost_breakdown")
+      .notNull()
+      .default([])
+      .$type<CostCategory[]>(),
+    riskLevel: varchar("risk_level", {
+      enum: ["low", "medium", "high", "critical"],
+    })
+      .notNull()
+      .default("medium"),
+    savingsOpportunity: numeric("savings_opportunity").notNull().default("0"),
+    roiProjection: json("roi_projection")
+      .notNull()
+      .default({})
+      .$type<ROIProjection>(),
+    metadata: json("metadata")
+      .notNull()
+      .default({})
+      .$type<Record<string, unknown>>(),
+    calculatedAt: timestamp("calculated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [
+    index("compliance_burden_tenant_idx").on(t.tenantId),
+    index("compliance_burden_prospect_idx").on(t.prospectId),
+    index("compliance_burden_risk_idx").on(t.tenantId, t.riskLevel),
+  ],
+);
+
+// --- Outreach Sequence Generator ---
+
+export const OutreachSequenceSchema = pgTable(
+  "outreach_sequence",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => TenantSchema.id, { onDelete: "cascade" }),
+    prospectId: uuid("prospect_id").references(() => ProspectSchema.id, {
+      onDelete: "set null",
+    }),
+    contactId: uuid("contact_id").references(() => ContactRecordSchema.id, {
+      onDelete: "set null",
+    }),
+    name: varchar("name", { length: 300 }).notNull(),
+    description: text("description"),
+    steps: json("steps").notNull().default([]).$type<OutreachStep[]>(),
+    status: varchar("status", {
+      enum: ["draft", "active", "paused", "completed", "archived"],
+    })
+      .notNull()
+      .default("draft")
+      .$type<SequenceStatus>(),
+    personalizationContext: json("personalization_context")
+      .notNull()
+      .default({})
+      .$type<Record<string, unknown>>(),
+    startedAt: timestamp("started_at"),
+    completedAt: timestamp("completed_at"),
+    metadata: json("metadata")
+      .notNull()
+      .default({})
+      .$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [
+    index("outreach_seq_tenant_idx").on(t.tenantId),
+    index("outreach_seq_prospect_idx").on(t.prospectId),
+    index("outreach_seq_contact_idx").on(t.contactId),
+    index("outreach_seq_status_idx").on(t.tenantId, t.status),
+  ],
+);
+
+// --- Customer Health & Expansion Scoring ---
+
+export const CustomerHealthSchema = pgTable(
+  "customer_health",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => TenantSchema.id, { onDelete: "cascade" }),
+    leadId: uuid("lead_id")
+      .notNull()
+      .references(() => LeadSchema.id, { onDelete: "cascade" }),
+    companyId: uuid("company_id").references(() => CompanyProfileSchema.id, {
+      onDelete: "set null",
+    }),
+    healthScore: integer("health_score").notNull().default(50),
+    healthStatus: varchar("health_status", {
+      enum: ["healthy", "at-risk", "churning", "expanding"],
+    })
+      .notNull()
+      .default("healthy")
+      .$type<HealthStatus>(),
+    engagementScore: integer("engagement_score").notNull().default(50),
+    adoptionScore: integer("adoption_score").notNull().default(50),
+    sentimentScore: integer("sentiment_score").notNull().default(50),
+    expansionProbability: numeric("expansion_probability")
+      .notNull()
+      .default("0"),
+    churnRisk: numeric("churn_risk").notNull().default("0"),
+    factors: json("factors").notNull().default([]).$type<HealthFactor[]>(),
+    expansionOpportunities: json("expansion_opportunities")
+      .notNull()
+      .default([])
+      .$type<ExpansionOpportunity[]>(),
+    lastAssessedAt: timestamp("last_assessed_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    metadata: json("metadata")
+      .notNull()
+      .default({})
+      .$type<Record<string, unknown>>(),
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [
+    index("customer_health_tenant_idx").on(t.tenantId),
+    index("customer_health_lead_idx").on(t.leadId),
+    index("customer_health_status_idx").on(t.tenantId, t.healthStatus),
+    index("customer_health_score_idx").on(t.tenantId, t.healthScore),
+  ],
+);
+
+// --- Win/Loss Analysis Engine ---
+
+export const DealAnalysisSchema = pgTable(
+  "deal_analysis",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => TenantSchema.id, { onDelete: "cascade" }),
+    leadId: uuid("lead_id")
+      .notNull()
+      .references(() => LeadSchema.id, { onDelete: "cascade" }),
+    prospectId: uuid("prospect_id").references(() => ProspectSchema.id, {
+      onDelete: "set null",
+    }),
+    outcome: varchar("outcome", {
+      enum: ["won", "lost", "no-decision", "disqualified"],
+    })
+      .notNull()
+      .$type<DealOutcome>(),
+    dealValue: numeric("deal_value").notNull().default("0"),
+    salesCycleLength: integer("sales_cycle_length").notNull().default(0),
+    competitorInvolved: varchar("competitor_involved", { length: 300 }),
+    winLossReasons: json("win_loss_reasons")
+      .notNull()
+      .default([])
+      .$type<string[]>(),
+    stageProgression: json("stage_progression")
+      .notNull()
+      .default([])
+      .$type<StageRecord[]>(),
+    keyFactors: json("key_factors").notNull().default([]).$type<DealFactor[]>(),
+    lessonsLearned: json("lessons_learned")
+      .notNull()
+      .default([])
+      .$type<string[]>(),
+    recommendations: json("recommendations")
+      .notNull()
+      .default([])
+      .$type<string[]>(),
+    analyzedBy: uuid("analyzed_by").references(() => UserSchema.id, {
+      onDelete: "set null",
+    }),
+    metadata: json("metadata")
+      .notNull()
+      .default({})
+      .$type<Record<string, unknown>>(),
+    analyzedAt: timestamp("analyzed_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [
+    index("deal_analysis_tenant_idx").on(t.tenantId),
+    index("deal_analysis_lead_idx").on(t.leadId),
+    index("deal_analysis_outcome_idx").on(t.tenantId, t.outcome),
+    index("deal_analysis_date_idx").on(t.analyzedAt),
+  ],
+);
+
 // Platform entity types
 export type TenantEntity = typeof TenantSchema.$inferSelect;
 export type ConnectorEntity = typeof ConnectorSchema.$inferSelect;
@@ -2067,3 +2726,17 @@ export type StateSourceEntity = typeof StateSourceSchema.$inferSelect;
 export type ResearchTaskEntity = typeof ResearchTaskSchema.$inferSelect;
 export type ResearchAgentConfigEntity =
   typeof ResearchAgentConfigSchema.$inferSelect;
+
+// Sales Intelligence entity types
+export type SalesBriefEntity = typeof SalesBriefSchema.$inferSelect;
+export type AlertEntity = typeof AlertSchema.$inferSelect;
+export type AlertRuleEntity = typeof AlertRuleSchema.$inferSelect;
+export type ResearchWorkflowEntity = typeof ResearchWorkflowSchema.$inferSelect;
+export type WorkflowRunEntity = typeof WorkflowRunSchema.$inferSelect;
+export type RelationshipMapEntity = typeof RelationshipMapSchema.$inferSelect;
+export type SalesPlaybookEntity = typeof SalesPlaybookSchema.$inferSelect;
+export type BuyingSignalEntity = typeof BuyingSignalSchema.$inferSelect;
+export type ComplianceBurdenEntity = typeof ComplianceBurdenSchema.$inferSelect;
+export type OutreachSequenceEntity = typeof OutreachSequenceSchema.$inferSelect;
+export type CustomerHealthEntity = typeof CustomerHealthSchema.$inferSelect;
+export type DealAnalysisEntity = typeof DealAnalysisSchema.$inferSelect;

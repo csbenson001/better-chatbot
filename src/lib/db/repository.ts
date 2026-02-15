@@ -31,6 +31,10 @@ export const platformRepository = pgPlatformRepository;
 export const salesHunterRepository = pgSalesHunterRepository;
 export const billingRepository = pgBillingRepository;
 
+import { pgSalesIntelligenceRepository } from "./pg/repositories/sales-intelligence-repository.pg";
+
+export const salesIntelligenceRepository = pgSalesIntelligenceRepository;
+
 import { pgRBACRepository } from "./pg/repositories/rbac-repository.pg";
 import { pgKnowledgeRepository } from "./pg/repositories/knowledge-repository.pg";
 import { pgCompanyIntelligenceRepository } from "./pg/repositories/company-intelligence-repository.pg";
