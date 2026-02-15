@@ -4,6 +4,7 @@ import { z } from "zod";
 import { serverCache } from "lib/cache";
 import { CacheKeys } from "lib/cache/cache-keys";
 import { AgentCreateSchema, AgentQuerySchema } from "app-types/agent";
+import { canCreateAgent } from "lib/auth/permissions";
 
 export async function GET(request: Request) {
   const session = await getSession();
@@ -40,7 +41,7 @@ export async function GET(request: Request) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return Response.json(
-        { error: "Invalid query parameters", details: error.errors },
+        { error: "Invalid query parameters", details: error.message },
         { status: 400 },
       );
     }
@@ -50,11 +51,20 @@ export async function GET(request: Request) {
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<Response> {
   const session = await getSession();
 
   if (!session?.user.id) {
     return new Response("Unauthorized", { status: 401 });
+  }
+
+  // Check if user has permission to create agents
+  const hasPermission = await canCreateAgent();
+  if (!hasPermission) {
+    return Response.json(
+      { error: "You don't have permission to create agents" },
+      { status: 403 },
+    );
   }
 
   try {
@@ -71,7 +81,7 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return Response.json(
-        { error: "Invalid input", details: error.errors },
+        { error: "Invalid input", details: error.message },
         { status: 400 },
       );
     }

@@ -15,6 +15,8 @@ import { cn } from "lib/utils";
 import { ShareableActions, type Visibility } from "./shareable-actions";
 import { WorkflowSummary } from "app-types/workflow";
 import { AgentSummary } from "app-types/agent";
+import { MCPServerInfo } from "app-types/mcp";
+import { MCPIcon } from "ui/mcp-icon";
 import Link from "next/link";
 
 export interface ShareableIcon {
@@ -24,13 +26,17 @@ export interface ShareableIcon {
   };
 }
 interface ShareableCardProps {
-  type: "agent" | "workflow";
-  item: AgentSummary | WorkflowSummary;
+  type: "agent" | "workflow" | "mcp";
+  item: AgentSummary | WorkflowSummary | MCPServerInfo;
   isOwner?: boolean;
   href: string;
   onBookmarkToggle?: (itemId: string, isBookmarked: boolean) => void;
   onVisibilityChange?: (itemId: string, visibility: Visibility) => void;
   onDelete?: (itemId: string) => void;
+  isVisibilityChangeLoading?: boolean;
+  isBookmarkToggleLoading?: boolean;
+  isDeleteLoading?: boolean;
+  actionsDisabled?: boolean;
 }
 
 export function ShareableCard({
@@ -41,10 +47,15 @@ export function ShareableCard({
   onBookmarkToggle,
   onVisibilityChange,
   onDelete,
+  isBookmarkToggleLoading,
+  isVisibilityChangeLoading,
+  isDeleteLoading,
+  actionsDisabled,
 }: ShareableCardProps) {
   const t = useTranslations();
   const isPublished = (item as WorkflowSummary).isPublished;
-  const isBookmarked = (item as AgentSummary).isBookmarked;
+  const isBookmarked =
+    type === "mcp" ? undefined : (item as AgentSummary).isBookmarked;
 
   return (
     <Link href={href} title={item.name}>
@@ -52,6 +63,9 @@ export function ShareableCard({
         className={cn(
           "w-full min-h-[196px] @container transition-colors group flex flex-col gap-3 cursor-pointer hover:bg-input",
         )}
+        data-testid={`${type}-card`}
+        data-item-name={item.name}
+        data-item-id={item.id}
       >
         <CardHeader className="shrink gap-y-0">
           <CardTitle className="flex gap-3 items-stretch min-w-0">
@@ -59,17 +73,26 @@ export function ShareableCard({
               style={{ backgroundColor: item.icon?.style?.backgroundColor }}
               className="p-2 rounded-lg flex items-center justify-center ring ring-background border shrink-0"
             >
-              <Avatar className="size-6">
-                <AvatarImage src={item.icon?.value} />
-                <AvatarFallback />
-              </Avatar>
+              {type === "mcp" ? (
+                <MCPIcon className="fill-white size-6" />
+              ) : (
+                <Avatar className="size-6">
+                  <AvatarImage src={item.icon?.value} />
+                  <AvatarFallback />
+                </Avatar>
+              )}
             </div>
 
             <div className="flex flex-col justify-around min-w-0 flex-1 overflow-hidden">
-              <span className="truncate font-medium">{item.name}</span>
+              <span
+                className="truncate font-medium"
+                data-testid={`${type}-card-name`}
+              >
+                {item.name}
+              </span>
               <div className="text-xs text-muted-foreground flex items-center gap-1 min-w-0">
                 <time className="shrink-0">
-                  {format(item.updatedAt, "MMM d, yyyy")}
+                  {format(item.updatedAt || new Date(), "MMM d, yyyy")}
                 </time>
                 {type === "workflow" && !isPublished && (
                   <span className="px-2 rounded-sm bg-secondary text-foreground shrink-0">
@@ -107,13 +130,17 @@ export function ShareableCard({
                     : undefined
                 }
                 onDelete={onDelete ? () => onDelete(item.id) : undefined}
+                isBookmarkToggleLoading={isBookmarkToggleLoading}
+                isVisibilityChangeLoading={isVisibilityChangeLoading}
+                isDeleteLoading={isDeleteLoading}
+                disabled={actionsDisabled}
               />
             </div>
 
             {!isOwner && item.userName && (
               <div className="flex items-center gap-1.5 min-w-0">
                 <Avatar className="size-4 ring shrink-0 rounded-full">
-                  <AvatarImage src={item.userAvatar} />
+                  <AvatarImage src={item.userAvatar || undefined} />
                   <AvatarFallback>
                     {item.userName[0]?.toUpperCase()}
                   </AvatarFallback>

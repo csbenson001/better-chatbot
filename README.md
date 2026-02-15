@@ -1,54 +1,42 @@
-<img width="1647" alt="thumbnail" loading="lazy" src="https://github.com/user-attachments/assets/7b0f279a-8771-42a0-b8b6-128b3b1a076c" />
+> [!WARNING] 
+> The author of this project has paused development until February, however, I (@brrock) will try and address vulnerabilities and issues. If you are contributing, you might have to wait until development continues.
+<img width="1184" height="576" alt="thumbnail" loading="lazy" src="https://github.com/user-attachments/assets/d6ba80ff-a62a-4920-b266-85c4a89d6076" />
 
 [![MCP Supported](https://img.shields.io/badge/MCP-Supported-00c853)](https://modelcontextprotocol.io/introduction)
 [![Local First](https://img.shields.io/badge/Local-First-blue)](https://localfirstweb.dev/)
 [![Discord](https://img.shields.io/discord/1374047276074537103?label=Discord&logo=discord&color=5865F2)](https://discord.gg/gCRu69Upnp)
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/cgoinglove/better-chatbot&env=BETTER_AUTH_SECRET&env=OPENAI_API_KEY&env=GOOGLE_GENERATIVE_AI_API_KEY&env=ANTHROPIC_API_KEY&envDescription=BETTER_AUTH_SECRET+is+required+(enter+any+secret+value).+At+least+one+LLM+provider+API+key+(OpenAI,+Claude,+or+Google)+is+required,+but+you+can+add+all+of+them.+See+the+link+below+for+details.&envLink=https://github.com/cgoinglove/better-chatbot/blob/main/.env.example&demo-title=better-chatbot&demo-description=An+Open-Source+Chatbot+Template+Built+With+Next.js+and+the+AI+SDK+by+Vercel.&products=[{"type":"integration","protocol":"storage","productSlug":"neon","integrationSlug":"neon"},{"type":"integration","protocol":"storage","productSlug":"upstash-kv","integrationSlug":"upstash"}])
+[![Deploy with Vercel](https://vercel.com/button)](<https://vercel.com/new/clone?repository-url=https://github.com/cgoinglove/better-chatbot&env=BETTER_AUTH_SECRET&env=OPENAI_API_KEY&env=GOOGLE_GENERATIVE_AI_API_KEY&env=ANTHROPIC_API_KEY&envDescription=BETTER_AUTH_SECRET+is+required+(enter+any+secret+value).+At+least+one+LLM+provider+API+key+(OpenAI,+Claude,+or+Google)+is+required,+but+you+can+add+all+of+them.+See+the+link+below+for+details.&envLink=https://github.com/cgoinglove/better-chatbot/blob/main/.env.example&demo-title=better-chatbot&demo-description=An+Open-Source+Chatbot+Template+Built+With+Next.js+and+the+AI+SDK+by+Vercel.&products=[{"type":"integration","protocol":"storage","productSlug":"neon","integrationSlug":"neon"},{"type":"integration","protocol":"storage","productSlug":"upstash-kv","integrationSlug":"upstash"},{"type":"blob"}]>)
 
+🚀 **[Live Demo](https://better-chatbot-demo.vercel.app/)** | See the experience in action in the [preview](#preview) below!
 
-See the experience in action in the [preview](#preview) below!
+#### Demo Chats
 
-> Built with [Vercel AI SDK](https://sdk.vercel.ai) and [Next.js](https://nextjs.org/), this app adopts modern patterns for building AI chat interfaces. It leverages the power of the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction) to seamlessly integrate external tools into your chat experience. You can also create custom workflows that become callable tools in chat, allowing you to chain multiple MCP tools, LLM interactions, and logic into powerful automated sequences.
+- **MCP Tools Demo:** [Chat with Tools](https://better-chatbot-demo.vercel.app/export/a4820921-8012-496b-8a5d-13757050bafe)
+- **Image Generation Demo:** [Chat with Image Generation](https://better-chatbot-demo.vercel.app/export/452ad745-9efb-49ae-9114-10db15f1b827)
 
-### Quick Start 🚀
+## Quick Start 🚀
 
-```bash
-# 1. Clone the repository
+> **Get your app running in minutes! No installation or payment required.**
 
-git clone https://github.com/cgoinglove/better-chatbot.git
-cd better-chatbot
+You only need **one AI Provider API Key** (OpenAI, Claude, Gemini, etc.). Everything else runs on free tiers - database, file storage, and hosting.
 
-# 2. (Optional) Install pnpm if you don't have it
+👉 **[Click this guide to deploy your site with just a few clicks](docs/tips-guides/vercel.md)**
 
-npm install -g pnpm
+---
 
-# 3. Install dependencies
+**Better Chatbot** - A better open-source AI chatbot for individuals and teams, inspired by ChatGPT, Claude, Grok, and Gemini.
 
-pnpm i
+• **Multi-AI Support** - Integrates all major LLMs: OpenAI, Anthropic, Google, xAI, Ollama, and more  
+• **Powerful Tools** - MCP protocol, web search, JS/Python code execution, data visualization  
+• **Image Generation** - Create and edit images with AI models (OpenAI, Google Gemini, xAI)  
+• **Automation** - Custom agents, visual workflows, artifact generation  
+• **Collaboration** - Share agents, workflows, and MCP configurations with your team  
+• **Voice Assistant** - Realtime voice chat with full MCP tool integration  
+• **Intuitive UX** - Instantly invoke any feature with `@mention`  
+• **Quick Start** - Deploy free with Vercel Deploy button
 
-# 4. (Optional) Start a local PostgreSQL instance
-
-pnpm docker:pg
-
-# If you already have your own PostgreSQL running, you can skip this step.
-# In that case, make sure to update the PostgreSQL URL in your .env file.
-
-# 5. Enter required information in the .env file
-
-# The .env file is created automatically. Just fill in the required values.
-# For the fastest setup, provide at least one LLM provider's API key (e.g., OPENAI_API_KEY, CLAUDE_API_KEY, GEMINI_API_KEY, etc.) and the PostgreSQL URL you want to use.
-
-# 6. Start the server
-
-pnpm build:local && pnpm start
-
-# (Recommended for most cases. Ensures correct cookie settings.)
-# For development mode with hot-reloading and debugging, you can use:
-# pnpm dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser to get started.
+Built with Vercel AI SDK and Next.js, combining the best features of leading AI services into one platform.
 
 ## Table of Contents
 
@@ -56,27 +44,29 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to get start
 - [Preview](#preview)
   - [🧩 Browser Automation with Playwright MCP](#-browser-automation-with-playwright-mcp)
   - [🔗 Visual Workflows as Custom Tools](#-visual-workflows-as-custom-tools)
+  - [🤖 Custom Agents](#-custom-agents)
   - [🎙️ Realtime Voice Assistant + MCP Tools](#️-realtime-voice-assistant--mcp-tools)
   - [⚡️ Quick Tool Mentions (`@`) \& Presets](#️-quick-tool-mentions---presets)
   - [🧭 Tool Choice Mode](#-tool-choice-mode)
   - [🛠️ Default Tools](#️-default-tools)
     - [🌐 Web Search](#-web-search)
-    - [⚡️ JS Executor](#️-js-executor)
+    - [⚡️ JS,PYTHON Executor](#️-jspython-executor)
     - [📊 Data Visualization Tools](#-data-visualization-tools)
 - [Getting Started](#getting-started)
   - [Quick Start (Docker Compose Version) 🐳](#quick-start-docker-compose-version-)
   - [Quick Start (Local Version) 🚀](#quick-start-local-version-)
   - [Environment Variables](#environment-variables)
 - [📘 Guides](#-guides)
-    - [🔌 MCP Server Setup \& Tool Testing](#-mcp-server-setup--tool-testing)
-    - [🐳 Docker Hosting Guide](#-docker-hosting-guide)
-    - [▲ Vercel Hosting Guide](#-vercel-hosting-guide)
-    - [🎯 System Prompts \& Chat Customization](#-system-prompts--chat-customization)
-    - [🔐 OAuth Sign-In Setup](#-oauth-sign-in-setup)
-    - [🕵🏿 Adding openAI like providers](#-adding-openai-like-providers)
+  - [🔌 MCP Server Setup \& Tool Testing](#-mcp-server-setup--tool-testing)
+  - [🐳 Docker Hosting Guide](#-docker-hosting-guide)
+  - [▲ Vercel Hosting Guide](#-vercel-hosting-guide)
+  - [🗂️ File Storage Drivers](#️-file-storage-drivers)
+  - [🎯 System Prompts \& Chat Customization](#-system-prompts--chat-customization)
+  - [🔐 OAuth Sign-In Setup](#-oauth-sign-in-setup)
+  - [🕵🏿 Adding openAI like providers](#-adding-openai-like-providers)
+  - [🧪 E2E Testing Guide](#-e2e-testing-guide)
 - [💡 Tips](#-tips)
-    - [🧠 Agentic Chatbot with Project Instructions](#-agentic-chatbot-with-project-instructions)
-    - [💬 Temporary Chat Windows](#-temporary-chat-windows)
+  - [💬 Temporary Chat Windows](#-temporary-chat-windows)
 - [🗺️ Roadmap](#️-roadmap)
 - [🙌 Contributing](#-contributing)
 - [💬 Join Our Discord](#-join-our-discord)
@@ -89,7 +79,7 @@ Get a feel for the UX — here's a quick look at what's possible.
 
 ### 🧩 Browser Automation with Playwright MCP
 
-![preview](https://github.com/user-attachments/assets/58b4c561-9b59-40db-9c62-9fd5aeea4432)
+![preview](https://github.com/user-attachments/assets/e4febb04-26d5-45da-a7bb-f7d452d333c2)
 
 **Example:** Control a web browser using Microsoft's [playwright-mcp](https://github.com/microsoft/playwright-mcp) tool.
 
@@ -112,7 +102,7 @@ Sample prompt:
 
 ### 🔗 Visual Workflows as Custom Tools
 
-<img width="1755" alt="workflow" src="https://github.com/user-attachments/assets/afa895f0-cc59-4c2f-beb3-4b7a1dc1f891" loading="lazy" />
+<img width="1912" height="953" alt="workflow" loading="lazy" src="https://github.com/user-attachments/assets/e69e72e8-595c-480e-b519-4531f4c6331f" />
 
 <img width="1567" alt="workflow-mention" loading="lazy" src="https://github.com/user-attachments/assets/cf3e1339-ee44-4615-a71d-f6b46833e41f" />
 
@@ -121,6 +111,24 @@ Sample prompt:
 - Build visual workflows by connecting LLM nodes (for AI reasoning) and Tool nodes (for MCP tool execution)
 - Publish workflows to make them available as `@workflow_name` tools in chat
 - Chain complex multi-step processes into reusable, automated sequences
+
+<br/>
+
+### 🤖 Custom Agents
+
+<img width="1567" alt="agent-example" loading="lazy" src="https://github.com/user-attachments/assets/d0a325c0-ff1e-4038-b6bf-fcf57659a5c1" />
+
+**Example:** Create specialized AI agents with custom instructions and tool access.
+
+- Define custom agents with specific system prompts and available tools
+- Easily invoke agents in chat using `@agent_name`
+- Build task-specific assistants like a GitHub Manager agent with issue/PR tools and project context
+
+For instance, create a GitHub Manager agent by:
+
+- Providing GitHub tools (issue/PR creation, comments, queries)
+- Adding project details to the system prompt
+- Calling it with `@github_manager` to manage your repository
 
 <br/>
 
@@ -135,7 +143,7 @@ Talk to the assistant naturally, and watch it execute tools in real time.
 
 ### ⚡️ Quick Tool Mentions (`@`) & Presets
 
-<img width="1225" alt="image" src="https://github.com/user-attachments/assets/4d56dd25-a94c-4c19-9efa-fd7b5d3d2187" loading="lazy"/>
+<img width="1225" alt="image" src="https://github.com/user-attachments/assets/dfe76b3b-c3d8-436e-8a7c-7b23292e234c" loading="lazy"/>
 
 Quickly call tool during chat by typing `@toolname`.
 No need to memorize — just type `@` and pick from the list!
@@ -174,15 +182,25 @@ Built-in web search powered by [Exa AI](https://exa.ai). Search the web with sem
 - **Free Tier:** 1,000 requests/month at no cost, no credit card required
 - **Easy Setup:** Get your API key instantly at [dashboard.exa.ai](https://dashboard.exa.ai)
 
-#### ⚡️ JS Executor
+#### 🎨 Image Generation
 
-<img width="1225" alt="js-executor-preview" src="https://github.com/user-attachments/assets/24d51665-c500-4c92-89de-7b46216e869f" loading="lazy"/>
+<img width="1034" height="940" loading="lazy" alt="image-generation" src="https://github.com/user-attachments/assets/b081c837-8948-4f4d-a2f4-c8630cf0eaa2" />
+
+Built-in image generation and editing capabilities powered by AI models. Create, edit, and modify images directly in your chats.
+
+- **Supported Operations:** Image generation, editing, and composition
+- **Current Models:** Gemini Nano Banana, OpenAI
+
+#### ⚡️ JS,PYTHON Executor
+
+<img width="1225" alt="js-executor-preview" src="https://github.com/user-attachments/assets/7deed824-e70b-46d4-a294-de20ed4dc869" loading="lazy"/>
 
 It is a simple JS execution tool.
 
 #### 📊 Data Visualization Tools
 
 **Interactive Tables**: Create feature-rich data tables with advanced functionality:
+
 - **Sorting & Filtering**: Sort by any column, filter data in real-time
 - **Search & Highlighting**: Global search with automatic text highlighting
 - **Export Options**: Export to CSV or Excel format with lazy-loaded libraries
@@ -246,9 +264,22 @@ pnpm build:local && pnpm start
 # pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser to get started.
+Alternative: Use Docker Compose for DB only (run app via pnpm)
 
-<br/>
+```bash
+# Start Postgres only via compose
+# Ensure your .env includes: POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB matching POSTGRES_URL
+docker compose -f docker/compose.yml up -d postgres
+
+# Apply migrations
+pnpm db:migrate
+
+
+# Run app locally
+pnpm dev   # or: pnpm build && pnpm start
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser to get started.
 
 ### Environment Variables
 
@@ -263,6 +294,7 @@ XAI_API_KEY=****
 ANTHROPIC_API_KEY=****
 OPENROUTER_API_KEY=****
 OLLAMA_BASE_URL=http://localhost:11434/api
+
 
 
 # Secret for Better Auth (generate with: npx @better-auth/cli@latest secret)
@@ -284,6 +316,19 @@ EXA_API_KEY=your_exa_api_key_here
 
 # Whether to use file-based MCP config (default: false)
 FILE_BASED_MCP_CONFIG=false
+
+# === File Storage ===
+# Vercel Blob is the default storage driver (works in both local dev and production)
+# Pull the token locally with `vercel env pull`
+FILE_STORAGE_TYPE=vercel-blob
+FILE_STORAGE_PREFIX=uploads
+BLOB_READ_WRITE_TOKEN=
+
+# -- S3 (coming soon) --
+# FILE_STORAGE_TYPE=s3
+# FILE_STORAGE_PREFIX=uploads
+# FILE_STORAGE_S3_BUCKET=
+# FILE_STORAGE_S3_REGION=
 
 # (Optional)
 # === OAuth Settings ===
@@ -333,6 +378,10 @@ Step-by-step setup guides for running and configuring better-chatbot.
 
 - Deploy the chatbot to Vercel with simple setup steps for production use.
 
+#### [🗂️ File Storage Drivers](./docs/tips-guides/file-storage.md)
+
+- Cloud-based file storage with Vercel Blob (default) for seamless uploads in both development and production. S3 support coming soon.
+
 #### [🎯 System Prompts & Chat Customization](./docs/tips-guides/system-prompts-and-customization.md)
 
 - Personalize your chatbot experience with custom system prompts, user preferences, and MCP tool instructions
@@ -344,15 +393,13 @@ Step-by-step setup guides for running and configuring better-chatbot.
 #### [🕵🏿 Adding openAI like providers](docs/tips-guides/adding-openAI-like-providers.md)
 
 - Adding openAI like ai providers
+
+#### [🧪 E2E Testing Guide](./docs/tips-guides/e2e-testing-guide.md)
+
+- Comprehensive end-to-end testing with Playwright including multi-user scenarios, agent visibility testing, and CI/CD integration
   <br/>
 
 ## 💡 Tips
-
-Advanced use cases and extra capabilities that enhance your chatbot experience.
-
-#### [🧠 Agentic Chatbot with Project Instructions](./docs/tips-guides/project_with_mcp.md)
-
-- Use MCP servers and structured project instructions to build a custom assistant that helps with specific tasks.
 
 #### [💬 Temporary Chat Windows](./docs/tips-guides/temporary_chat.md)
 
@@ -362,12 +409,23 @@ Advanced use cases and extra capabilities that enhance your chatbot experience.
 
 Planned features coming soon to better-chatbot:
 
-- [ ] **File Attach & Image Generation**
+- [x] **File Upload & Storage** (Vercel Blob integration)
+- [x] **Image Generation**
 - [ ] **Collaborative Document Editing** (like OpenAI Canvas: user & assistant co-editing)
 - [ ] **RAG (Retrieval-Augmented Generation)**
 - [ ] **Web-based Compute** (with [WebContainers](https://webcontainers.io) integration)
 
 💡 If you have suggestions or need specific features, please create an [issue](https://github.com/cgoinglove/better-chatbot/issues)!
+
+## 💖 Support
+
+If this project has been helpful to you, please consider supporting its development:
+
+- ⭐ **Star** this repository
+- 🐛 **Report** bugs and suggest features
+- 💰 **[Become a sponsor](https://github.com/sponsors/cgoinglove)** to support ongoing development
+
+Your support helps maintain and improve this project. Thank you! 🙏
 
 ## 🙌 Contributing
 

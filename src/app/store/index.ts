@@ -8,6 +8,19 @@ import { AppDefaultToolkit } from "lib/ai/tools";
 import { AgentSummary } from "app-types/agent";
 import { ArchiveWithItemCount } from "app-types/archive";
 
+export interface UploadedFile {
+  id: string;
+  url: string;
+  name: string;
+  mimeType: string;
+  size: number;
+  isUploading?: boolean;
+  progress?: number;
+  previewUrl?: string;
+  abortController?: AbortController;
+  dataUrl?: string; // Full data URL format: "data:image/png;base64,..."
+}
+
 export interface AppState {
   threadList: ChatThread[];
   mcpList: (MCPServerInfo & { id: string })[];
@@ -22,6 +35,12 @@ export interface AppState {
   threadMentions: {
     [threadId: string]: ChatMention[];
   };
+  threadFiles: {
+    [threadId: string]: UploadedFile[];
+  };
+  threadImageToolModel: {
+    [threadId: string]: string | undefined;
+  };
   toolPresets: {
     allowedMcpServers?: Record<string, AllowedMCPServer>;
     allowedAppDefaultToolkit?: AppDefaultToolkit[];
@@ -30,6 +49,7 @@ export interface AppState {
   chatModel?: ChatModel;
   openShortcutsPopup: boolean;
   openChatPreferences: boolean;
+  openUserSettings: boolean;
   mcpCustomizationPopup?: MCPServerInfo & { id: string };
   temporaryChat: {
     isOpen: boolean;
@@ -56,12 +76,15 @@ const initialState: AppState = {
   archiveList: [],
   generatingTitleThreadIds: [],
   threadMentions: {},
+  threadFiles: {},
+  threadImageToolModel: {},
   mcpList: [],
   agentList: [],
   workflowToolList: [],
   currentThreadId: null,
   toolChoice: "auto",
   allowedMcpServers: undefined,
+  openUserSettings: false,
   allowedAppDefaultToolkit: [
     AppDefaultToolkit.Code,
     AppDefaultToolkit.Visualization,
@@ -103,7 +126,7 @@ export const appStore = create<AppState & AppDispatch>()(
         allowedAppDefaultToolkit: (
           state.allowedAppDefaultToolkit ??
           initialState.allowedAppDefaultToolkit
-        )?.filter((v) => AppDefaultToolkit[v]),
+        )?.filter((v) => Object.values(AppDefaultToolkit).includes(v)),
         temporaryChat: {
           ...initialState.temporaryChat,
           ...state.temporaryChat,

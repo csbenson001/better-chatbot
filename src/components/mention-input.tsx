@@ -1,4 +1,5 @@
 "use client";
+import { useIsMobile } from "@/hooks/use-mobile";
 import Mention from "@tiptap/extension-mention";
 import {
   EditorContent,
@@ -39,12 +40,12 @@ interface MentionInputProps {
   editorRef?: RefObject<Editor | null>;
   onFocus?: () => void;
   onBlur?: () => void;
-  fullWidthSuggestion?: boolean; // 새로 추가된 옵션
-  MentionItem: FC<{
+  fullWidthSuggestion?: boolean;
+  MentionItem?: FC<{
     label: string;
     id: string;
   }>;
-  Suggestion: FC<{
+  Suggestion?: FC<{
     top: number;
     left: number;
     onClose: () => void;
@@ -70,6 +71,7 @@ export default function MentionInput({
   onBlur,
   fullWidthSuggestion = false,
 }: MentionInputProps) {
+  const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
   const position = useRef<{
     top: number;
@@ -104,12 +106,13 @@ export default function MentionInput({
             const el = document.createElement("div");
             el.className = "inline-flex";
             const root = createRoot(el);
-            root.render(
-              <MentionItem
-                label={props.node.attrs.label}
-                id={props.node.attrs.id}
-              />,
-            );
+            if (MentionItem)
+              root.render(
+                <MentionItem
+                  label={props.node.attrs.label}
+                  id={props.node.attrs.id}
+                />,
+              );
             return el;
           },
           suggestion: {
@@ -157,7 +160,18 @@ export default function MentionInput({
           ?.flatMap(({ content }) => {
             return content
               ?.filter((v) => v.type == "mention")
-              .map((v) => v.attrs);
+              .map(
+                (v) =>
+                  (
+                    v as {
+                      type: "mention";
+                      attrs: {
+                        id: string;
+                        label: string;
+                      };
+                    }
+                  ).attrs,
+              );
           })
           .filter(Boolean) as { label: string; id: string }[];
         latestContent.current = {
@@ -208,7 +222,13 @@ export default function MentionInput({
         !e.shiftKey &&
         !e.metaKey &&
         !e.nativeEvent.isComposing;
-      if (isSubmit) onEnter?.();
+      if (isSubmit) {
+        e.preventDefault();
+        onEnter?.();
+        if (isMobile) {
+          editor?.commands.blur();
+        }
+      }
     },
     [editor, onEnter, open],
   );
@@ -216,6 +236,7 @@ export default function MentionInput({
   // Memoize the DOM structure
   const suggestion = useMemo(() => {
     if (!open || disabledMention) return null;
+    if (!Suggestion) return null;
     return createPortal(
       <Suggestion
         top={position.current?.top ?? 0}
