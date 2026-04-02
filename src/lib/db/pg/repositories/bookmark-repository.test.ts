@@ -1,13 +1,15 @@
 import { describe, it, expect } from "vitest";
+import { BookmarkTable } from "../schema.pg";
 
 describe("BookmarkTable itemType enum", () => {
-  it("should include thread and project in valid item types", () => {
-    // This test validates at the type level — if schema doesn't include
-    // these types, the build will fail
-    const validTypes: Array<
-      "agent" | "workflow" | "mcp" | "thread" | "project"
-    > = ["agent", "workflow", "mcp", "thread", "project"];
-    expect(validTypes).toContain("thread");
-    expect(validTypes).toContain("project");
+  it("includes thread and project as valid item types", () => {
+    // Verify the column config has the expected enum values
+    const column = BookmarkTable.itemType;
+    const enumValues = (column as any).enumValues as string[];
+    expect(enumValues).toContain("thread");
+    expect(enumValues).toContain("project");
+    expect(enumValues).toContain("agent");
+    expect(enumValues).toContain("workflow");
+    expect(enumValues).toContain("mcp");
   });
 });
