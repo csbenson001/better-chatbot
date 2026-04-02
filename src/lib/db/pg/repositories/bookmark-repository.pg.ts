@@ -11,7 +11,7 @@ type BookmarkItemType = "agent" | "workflow" | "mcp" | "thread" | "project";
 
 export interface StarredThread {
   id: string;
-  title: string | null;
+  title: string;
   createdAt: Date;
 }
 
@@ -123,6 +123,7 @@ export const pgBookmarkRepository: BookmarkRepository = {
       return project.userId === userId;
     }
 
+    // "workflow" and "mcp" access checks not yet implemented — access denied by default
     return false;
   },
 
