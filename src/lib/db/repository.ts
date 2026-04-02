@@ -55,3 +55,6 @@ export const industryRepository = pgIndustryRepository;
 export const prospectingRepository = pgProspectingRepository;
 export const contactIntelligenceRepository = pgContactIntelligenceRepository;
 export const stateResearchRepository = pgStateResearchRepository;
+
+import { pgTenantModelConfigRepository } from "./pg/repositories/tenant-model-config-repository.pg";
+export const tenantModelConfigRepository = pgTenantModelConfigRepository;
