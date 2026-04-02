@@ -9,7 +9,8 @@ import {
   UIMessage,
 } from "ai";
 
-import { customModelProvider, isToolCallUnsupportedModel } from "lib/ai/models";
+import { isToolCallUnsupportedModel } from "lib/ai/models";
+import { getTenantModelProvider } from "lib/ai/tenant-model-provider";
 
 import { mcpClientsManager } from "lib/ai/mcp/mcp-manager";
 
@@ -108,7 +109,11 @@ export async function POST(request: Request) {
       attachments = [],
     } = chatApiSchemaRequestBodySchema.parse(json);
 
-    const model = customModelProvider.getModel(chatModel);
+    const tenantId =
+      request.headers.get("x-tenant-id") ??
+      "00000000-0000-0000-0000-000000000000";
+    const tenantProvider = await getTenantModelProvider(tenantId);
+    const model = tenantProvider.getModel(chatModel);
 
     let thread = await chatRepository.selectThreadDetails(id);
 
