@@ -223,7 +223,7 @@ export const BookmarkTable = pgTable(
       .references(() => UserTable.id, { onDelete: "cascade" }),
     itemId: uuid("item_id").notNull(),
     itemType: varchar("item_type", {
-      enum: ["agent", "workflow", "mcp"],
+      enum: ["agent", "workflow", "mcp", "thread", "project"],
     }).notNull(),
     createdAt: timestamp("created_at")
       .notNull()
