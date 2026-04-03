@@ -29,7 +29,8 @@ interface SelectModelProps {
 
 export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
   const [open, setOpen] = useState(false);
-  const { data: providers } = useChatModels();
+  const { data: chatModelsData } = useChatModels();
+  const providers = chatModelsData?.models ?? [];
   const [model, setModel] = useState(props.currentModel);
 
   useEffect(() => {
@@ -103,15 +104,20 @@ export const SelectModel = (props: PropsWithChildren<SelectModelProps>) => {
                       disabled={!provider.hasAPIKey}
                       className="cursor-pointer"
                       onSelect={() => {
-                        setModel({
+                        const selected = {
                           provider: provider.provider,
                           model: item.name,
-                        });
-                        props.onSelect({
-                          provider: provider.provider,
-                          model: item.name,
-                        });
+                        };
+                        setModel(selected);
+                        props.onSelect(selected);
                         setOpen(false);
+                        fetch("/api/user/preferred-model", {
+                          method: "PATCH",
+                          headers: { "content-type": "application/json" },
+                          body: JSON.stringify(selected),
+                        }).catch(() => {
+                          // fire and forget — preference save failure is not user-facing
+                        });
                       }}
                       value={item.name}
                       data-testid={`model-option-${provider.provider}-${item.name}`}
