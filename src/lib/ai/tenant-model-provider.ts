@@ -27,9 +27,9 @@ function buildProviderFn(pk: TenantProviderKey): ProviderFn | null {
     }
     case "azure": {
       if (!pk.azureEndpoint || !pk.azureDeploymentName) return null;
-      // baseURL format: {endpoint}/openai/deployments — Azure SDK appends /v1{path}
+      // baseURL format: {endpoint}/openai — Azure SDK appends the rest of the path
       const p = createAzure({
-        baseURL: `${pk.azureEndpoint}/openai/deployments`,
+        baseURL: `${pk.azureEndpoint.trimEnd().replace(/\/$/, "")}/openai`,
         apiKey: pk.apiKey,
         apiVersion: pk.azureApiVersion ?? "2024-02-01",
       });
