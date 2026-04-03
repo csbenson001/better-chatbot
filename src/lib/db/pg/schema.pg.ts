@@ -1,6 +1,7 @@
 import { Agent } from "app-types/agent";
 import { UserPreferences } from "app-types/user";
 import { MCPServerConfig } from "app-types/mcp";
+import type { SupportedProvider } from "app-types/model-config";
 import type {
   ConnectorType,
   ConnectorStatus,
@@ -327,8 +328,8 @@ export const UserTable = pgTable("user", {
   image: text("image"),
   preferences: json("preferences").default({}).$type<UserPreferences>(),
   preferredModel: json("preferred_model")
-    .$type<{ provider: string; model: string } | null>()
-    .default(null),
+    .default(null)
+    .$type<{ provider: string; model: string } | null>(),
   createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   banned: boolean("banned"),
@@ -3023,14 +3024,16 @@ export const TenantProviderKeySchema = pgTable(
     tenantId: uuid("tenant_id")
       .notNull()
       .references(() => TenantSchema.id, { onDelete: "cascade" }),
-    provider: varchar("provider", { length: 50 }).notNull(),
+    provider: varchar("provider", { length: 50 })
+      .notNull()
+      .$type<SupportedProvider>(),
     apiKey: text("api_key").notNull(),
     enabled: boolean("enabled").notNull().default(true),
     azureEndpoint: text("azure_endpoint"),
     azureDeploymentName: text("azure_deployment_name"),
-    azureApiVersion: varchar("azure_api_version", { length: 20 }).default(
-      "2024-02-01",
-    ),
+    azureApiVersion: varchar("azure_api_version", { length: 20 })
+      .notNull()
+      .default("2024-02-01"),
     createdAt: timestamp("created_at")
       .notNull()
       .default(sql`CURRENT_TIMESTAMP`),
@@ -3054,7 +3057,9 @@ export const TenantModelSettingSchema = pgTable(
     tenantId: uuid("tenant_id")
       .notNull()
       .references(() => TenantSchema.id, { onDelete: "cascade" }),
-    provider: varchar("provider", { length: 50 }).notNull(),
+    provider: varchar("provider", { length: 50 })
+      .notNull()
+      .$type<SupportedProvider>(),
     modelName: varchar("model_name", { length: 100 }).notNull(),
     enabled: boolean("enabled").notNull().default(true),
     isDefault: boolean("is_default").notNull().default(false),
