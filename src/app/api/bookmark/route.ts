@@ -2,9 +2,9 @@ import { getSession } from "auth/server";
 import { bookmarkRepository } from "lib/db/repository";
 import { z } from "zod";
 
-const BookmarkTable = z.object({
+const BookmarkSchema = z.object({
   itemId: z.string().min(1),
-  itemType: z.enum(["agent", "workflow"]),
+  itemType: z.enum(["agent", "workflow", "mcp", "thread", "project"]),
 });
 
 export async function POST(request: Request) {
@@ -16,9 +16,8 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { itemId, itemType } = BookmarkTable.parse(body);
+    const { itemId, itemType } = BookmarkSchema.parse(body);
 
-    // Check if user has access to bookmark this item
     const hasAccess = await bookmarkRepository.checkItemAccess(
       itemId,
       itemType,
@@ -32,7 +31,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Create bookmark
     await bookmarkRepository.createBookmark(session.user.id, itemId, itemType);
 
     return Response.json({ success: true });
@@ -43,7 +41,6 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
-
     console.error("Error creating bookmark:", error);
     return Response.json(
       { error: "Failed to create bookmark" },
@@ -61,9 +58,8 @@ export async function DELETE(request: Request) {
 
   try {
     const body = await request.json();
-    const { itemId, itemType } = BookmarkTable.parse(body);
+    const { itemId, itemType } = BookmarkSchema.parse(body);
 
-    // Remove bookmark
     await bookmarkRepository.removeBookmark(session.user.id, itemId, itemType);
 
     return Response.json({ success: true });
@@ -74,7 +70,6 @@ export async function DELETE(request: Request) {
         { status: 400 },
       );
     }
-
     console.error("Error deleting bookmark:", error);
     return Response.json(
       { error: "Failed to delete bookmark" },
