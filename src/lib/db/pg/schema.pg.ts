@@ -326,6 +326,9 @@ export const UserTable = pgTable("user", {
   password: text("password"),
   image: text("image"),
   preferences: json("preferences").default({}).$type<UserPreferences>(),
+  preferredModel: json("preferred_model")
+    .$type<{ provider: string; model: string } | null>()
+    .default(null),
   createdAt: timestamp("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   updatedAt: timestamp("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   banned: boolean("banned"),
@@ -3010,3 +3013,69 @@ export const PromptItemTable = pgTable(
   },
   (t) => [index("prompt_item_category_id_idx").on(t.categoryId)],
 );
+
+// ─── Tenant Model Config ────────────────────────────────────────────────────
+
+export const TenantProviderKeySchema = pgTable(
+  "tenant_provider_key",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => TenantSchema.id, { onDelete: "cascade" }),
+    provider: varchar("provider", { length: 50 }).notNull(),
+    apiKey: text("api_key").notNull(),
+    enabled: boolean("enabled").notNull().default(true),
+    azureEndpoint: text("azure_endpoint"),
+    azureDeploymentName: text("azure_deployment_name"),
+    azureApiVersion: varchar("azure_api_version", { length: 20 }).default(
+      "2024-02-01",
+    ),
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [
+    index("tenant_provider_key_tenant_id_idx").on(t.tenantId),
+    unique("tenant_provider_key_tenant_provider_unq").on(
+      t.tenantId,
+      t.provider,
+    ),
+  ],
+);
+
+export const TenantModelSettingSchema = pgTable(
+  "tenant_model_setting",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    tenantId: uuid("tenant_id")
+      .notNull()
+      .references(() => TenantSchema.id, { onDelete: "cascade" }),
+    provider: varchar("provider", { length: 50 }).notNull(),
+    modelName: varchar("model_name", { length: 100 }).notNull(),
+    enabled: boolean("enabled").notNull().default(true),
+    isDefault: boolean("is_default").notNull().default(false),
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [
+    index("tenant_model_setting_tenant_id_idx").on(t.tenantId),
+    unique("tenant_model_setting_tenant_provider_model_unq").on(
+      t.tenantId,
+      t.provider,
+      t.modelName,
+    ),
+  ],
+);
+
+export type TenantProviderKeyEntity =
+  typeof TenantProviderKeySchema.$inferSelect;
+export type TenantModelSettingEntity =
+  typeof TenantModelSettingSchema.$inferSelect;
