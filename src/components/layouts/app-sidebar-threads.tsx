@@ -11,7 +11,7 @@ import {
 import { SidebarGroupContent, SidebarMenu, SidebarMenuItem } from "ui/sidebar";
 import { SidebarGroup } from "ui/sidebar";
 import { ThreadDropdown } from "../thread-dropdown";
-import { ChevronDown, ChevronUp, MoreHorizontal, Trash } from "lucide-react";
+import { MoreHorizontal, Trash } from "lucide-react";
 import { useMounted } from "@/hooks/use-mounted";
 import { appStore } from "@/app/store";
 import { Button } from "ui/button";
@@ -31,7 +31,7 @@ import { useShallow } from "zustand/shallow";
 import { useRouter } from "next/navigation";
 import useSWR, { mutate } from "swr";
 import { handleErrorWithToast } from "ui/shared-toast";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 import { useTranslations } from "next-intl";
 import { useStarred } from "@/hooks/queries/use-starred";
@@ -59,7 +59,6 @@ export function AppSidebarThreads() {
     ]),
   );
   // State to track if expanded view is active
-  const [isExpanded, setIsExpanded] = useState(false);
 
   const { starredThreads } = useStarred();
   const starredThreadIds = new Set(starredThreads.map((t) => t.id));
@@ -99,13 +98,13 @@ export function AppSidebarThreads() {
   // Check if we have 40 or more threads to display "View All" button
   const hasExcessThreads = threadList && threadList.length >= MAX_THREADS_COUNT;
 
-  // Use either limited or full thread list based on expanded state
+  // Always show at most MAX_THREADS_COUNT threads; use /chats for the full list
   const displayThreadList = useMemo(() => {
     if (!threadList) return [];
-    return !isExpanded && hasExcessThreads
+    return hasExcessThreads
       ? threadList.slice(0, MAX_THREADS_COUNT)
       : threadList;
-  }, [threadList, hasExcessThreads, isExpanded]);
+  }, [threadList, hasExcessThreads]);
 
   const threadGroupByDate = useMemo(() => {
     if (!displayThreadList || displayThreadList.length === 0) {
@@ -306,25 +305,18 @@ export function AppSidebarThreads() {
         );
       })}
 
-      {hasExcessThreads && (
-        <SidebarMenu>
-          <SidebarMenuItem>
-            {/* TODO: Later implement a dedicated search/all chats page instead of this expand functionality */}
-            <div className="w-full flex px-4">
-              <Button
-                variant="secondary"
-                size="sm"
-                className="w-full hover:bg-input! justify-start"
-                onClick={() => setIsExpanded(!isExpanded)}
-              >
-                <MoreHorizontal className="mr-2" />
-                {isExpanded ? t("showLessChats") : t("showAllChats")}
-                {isExpanded ? <ChevronUp /> : <ChevronDown />}
-              </Button>
-            </div>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      )}
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <div className="w-full flex px-4 pb-2">
+            <Link
+              href="/chats"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors w-full text-center py-1"
+            >
+              All chats
+            </Link>
+          </div>
+        </SidebarMenuItem>
+      </SidebarMenu>
     </>
   );
 }
