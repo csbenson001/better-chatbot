@@ -177,4 +177,19 @@ export const pgUserRepository: UserRepository = {
         .map((a) => a.providerId),
     };
   },
+
+  updatePreferredModel: async (userId, model) => {
+    await db
+      .update(UserTable)
+      .set({ preferredModel: model, updatedAt: new Date() })
+      .where(eq(UserTable.id, userId));
+  },
+
+  getPreferredModel: async (userId) => {
+    const [result] = await db
+      .select({ preferredModel: UserTable.preferredModel })
+      .from(UserTable)
+      .where(eq(UserTable.id, userId));
+    return result?.preferredModel ?? null;
+  },
 };
