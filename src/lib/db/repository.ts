@@ -65,3 +65,6 @@ export const promptRepository = pgPromptRepository;
 import { pgTenantModelConfigRepository } from "./pg/repositories/tenant-model-config-repository.pg";
 export const tenantModelConfigRepository = pgTenantModelConfigRepository;
 export { maskApiKey } from "./pg/repositories/tenant-model-config-repository.pg";
+
+import { pgSystemPromptRepository } from "./pg/repositories/system-prompt-repository.pg";
+export const systemPromptRepository = pgSystemPromptRepository;
