@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { getSession } from "auth/server";
 import { tenantModelConfigRepository } from "lib/db/repository";
 import { maskApiKey } from "lib/db/pg/repositories/tenant-model-config-repository.pg";
 import type { TenantProviderKey } from "app-types/model-config";
 
 const UpsertProviderSchema = z.object({
   provider: z.enum(["openai", "anthropic", "google", "azure"]),
-  apiKey: z.string().min(1),
+  apiKey: z.string().optional(),
   enabled: z.boolean().default(true),
   azureEndpoint: z.string().url().optional().nullable(),
   azureDeploymentName: z.string().optional().nullable(),
@@ -19,6 +20,10 @@ function maskProvider(pk: TenantProviderKey) {
 }
 
 export async function GET(request: Request) {
+  const session = await getSession();
+  if (!session?.user || !["admin", "super_admin"].includes((session.user as any).role as string)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const tenantId =
       request.headers.get("x-tenant-id") ??
@@ -34,17 +39,32 @@ export async function GET(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  const session = await getSession();
+  if (!session?.user || !["admin", "super_admin"].includes((session.user as any).role as string)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const tenantId =
       request.headers.get("x-tenant-id") ??
       "00000000-0000-0000-0000-000000000000";
     const body = await request.json();
     const data = UpsertProviderSchema.parse(body);
+
+    // If no new apiKey was provided, preserve the existing key from DB
+    let resolvedApiKey = data.apiKey && data.apiKey.length > 0 ? data.apiKey : null;
+    if (!resolvedApiKey) {
+      const existing = await tenantModelConfigRepository.getProviderKey(tenantId, data.provider);
+      if (!existing) {
+        return NextResponse.json({ error: "apiKey is required for new providers" }, { status: 400 });
+      }
+      resolvedApiKey = existing.apiKey;
+    }
+
     const result = await tenantModelConfigRepository.upsertProviderKey(
       tenantId,
       data.provider,
       {
-        apiKey: data.apiKey,
+        apiKey: resolvedApiKey,
         enabled: data.enabled,
         azureEndpoint: data.azureEndpoint ?? null,
         azureDeploymentName: data.azureDeploymentName ?? null,
@@ -64,6 +84,10 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const session = await getSession();
+  if (!session?.user || !["admin", "super_admin"].includes((session.user as any).role as string)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const tenantId =
       request.headers.get("x-tenant-id") ??

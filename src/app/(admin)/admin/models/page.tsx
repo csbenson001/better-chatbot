@@ -96,7 +96,7 @@ export default function ModelSettingsPage() {
     try {
       const body: Record<string, unknown> = {
         provider: selected,
-        apiKey: form.apiKey || existing?.apiKeyMasked || "",
+        ...(form.apiKey ? { apiKey: form.apiKey } : {}),
         enabled: form.enabled,
       };
       if (selected === "azure") {

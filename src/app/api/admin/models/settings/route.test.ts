@@ -1,5 +1,11 @@
 import { describe, it, expect, vi } from "vitest";
 
+vi.mock("auth/server", () => ({
+  getSession: vi.fn().mockResolvedValue({
+    user: { id: "user-1", role: "admin" },
+  }),
+}));
+
 vi.mock("lib/db/repository", () => ({
   tenantModelConfigRepository: {
     getModelSettings: vi.fn().mockResolvedValue([

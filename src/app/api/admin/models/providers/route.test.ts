@@ -1,5 +1,11 @@
 import { describe, it, expect, vi } from "vitest";
 
+vi.mock("auth/server", () => ({
+  getSession: vi.fn().mockResolvedValue({
+    user: { id: "user-1", role: "admin" },
+  }),
+}));
+
 vi.mock("lib/db/repository", () => ({
   tenantModelConfigRepository: {
     getProviderKeys: vi.fn().mockResolvedValue([
@@ -10,6 +16,12 @@ vi.mock("lib/db/repository", () => ({
         azureApiVersion: null, createdAt: new Date(), updatedAt: new Date(),
       },
     ]),
+    getProviderKey: vi.fn().mockResolvedValue({
+      id: "1", tenantId: "t1", provider: "anthropic",
+      apiKey: "sk-ant-api03-supersecretkey1234",
+      enabled: true, azureEndpoint: null, azureDeploymentName: null,
+      azureApiVersion: null, createdAt: new Date(), updatedAt: new Date(),
+    }),
     upsertProviderKey: vi.fn().mockResolvedValue({
       id: "2", tenantId: "t1", provider: "openai",
       apiKey: "sk-openai-test-key-5678",

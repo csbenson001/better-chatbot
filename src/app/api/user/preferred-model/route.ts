@@ -3,6 +3,15 @@ import { z } from "zod";
 import { getSession } from "auth/server";
 import { userRepository } from "lib/db/repository";
 
+export async function GET() {
+  const session = await getSession();
+  if (!session?.user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const preferred = await userRepository.getPreferredModel(session.user.id);
+  return NextResponse.json({ preferredModel: preferred ?? null });
+}
+
 const PreferredModelSchema = z.union([
   z.object({ provider: z.string().min(1), model: z.string().min(1) }),
   z.object({ clear: z.literal(true) }),

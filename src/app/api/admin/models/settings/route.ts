@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { getSession } from "auth/server";
 import { tenantModelConfigRepository } from "lib/db/repository";
 import { customModelProvider } from "lib/ai/models";
 
@@ -15,6 +16,10 @@ const BulkUpdateSchema = z.object({
 });
 
 export async function GET(request: Request) {
+  const session = await getSession();
+  if (!session?.user || !["admin", "super_admin"].includes((session.user as any).role as string)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const tenantId =
       request.headers.get("x-tenant-id") ??
@@ -51,6 +56,10 @@ export async function GET(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+  const session = await getSession();
+  if (!session?.user || !["admin", "super_admin"].includes((session.user as any).role as string)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const tenantId =
       request.headers.get("x-tenant-id") ??
