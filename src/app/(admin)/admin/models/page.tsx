@@ -93,12 +93,17 @@ export default function ModelSettingsPage() {
       setSaveError("API key is required");
       return;
     }
+    // Prevent sending masked key back — require re-entry to change settings
+    if (!form.apiKey && existing) {
+      setSaveError("Re-enter your API key to save changes.");
+      return;
+    }
     setSaving(true);
     setSaveError(null);
     try {
       const body: Record<string, unknown> = {
         provider: selected,
-        apiKey: form.apiKey || existing?.apiKeyMasked || "",
+        apiKey: form.apiKey,
         enabled: form.enabled,
       };
       if (selected === "azure") {
@@ -146,27 +151,43 @@ export default function ModelSettingsPage() {
           : r,
       ),
     );
-    await fetch("/api/admin/models/settings", {
+    const res = await fetch("/api/admin/models/settings", {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ updates: [{ provider, modelName, enabled }] }),
     });
+    if (!res.ok) {
+      // Roll back optimistic update
+      setModelRows((prev) =>
+        prev.map((r) =>
+          r.provider === provider && r.modelName === modelName
+            ? { ...r, enabled: !enabled }
+            : r,
+        ),
+      );
+      setSaveError("Failed to update model setting");
+    }
   };
 
   const handleSetDefault = async (provider: string, modelName: string) => {
+    const previousRows = modelRows;
     setModelRows((prev) =>
       prev.map((r) => ({
         ...r,
         isDefault: r.provider === provider && r.modelName === modelName,
       })),
     );
-    await fetch("/api/admin/models/settings", {
+    const res = await fetch("/api/admin/models/settings", {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         updates: [{ provider, modelName, isDefault: true }],
       }),
     });
+    if (!res.ok) {
+      setModelRows(previousRows);
+      setSaveError("Failed to set default model");
+    }
   };
 
   const currentModels = modelRows.filter((r) => r.provider === selected);
