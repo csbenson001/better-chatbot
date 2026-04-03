@@ -32,8 +32,10 @@ function buildProviderFn(pk: TenantProviderKey): ProviderFn | null {
         baseURL: `${pk.azureEndpoint.trimEnd().replace(/\/$/, "")}/openai`,
         apiKey: pk.apiKey,
         apiVersion: pk.azureApiVersion ?? "2024-02-01",
+        useDeploymentBasedUrls: true,
       });
-      return (modelId) => p(modelId) as unknown as LanguageModel;
+      const deploymentName = pk.azureDeploymentName;
+      return (_modelId) => p(deploymentName) as unknown as LanguageModel;
     }
     default:
       return null;

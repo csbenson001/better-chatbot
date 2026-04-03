@@ -5,6 +5,7 @@ import {
 } from "../schema.pg";
 import { eq, and } from "drizzle-orm";
 import type {
+  TenantModelConfig,
   TenantModelConfigRepository,
   TenantProviderKey,
   TenantModelSetting,
@@ -147,6 +148,14 @@ export const pgTenantModelConfigRepository: TenantModelConfigRepository = {
         ],
         set: { isDefault: true, enabled: true, updatedAt: new Date() },
       });
+  },
+
+  async getTenantModelConfig(tenantId): Promise<TenantModelConfig> {
+    const [providerKeys, modelSettings] = await Promise.all([
+      this.getProviderKeys(tenantId),
+      this.getModelSettings(tenantId),
+    ]);
+    return { providerKeys, modelSettings };
   },
 
   async bulkUpsertModelSettings(tenantId, settings) {

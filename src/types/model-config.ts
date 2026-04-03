@@ -48,6 +48,11 @@ export type BulkModelSettingInput = {
   isDefault?: boolean;
 };
 
+export type TenantModelConfig = {
+  providerKeys: TenantProviderKey[];
+  modelSettings: TenantModelSetting[];
+};
+
 export type TenantModelConfigRepository = {
   getProviderKeys: (tenantId: string) => Promise<TenantProviderKey[]>;
   getProviderKey: (
@@ -79,4 +84,5 @@ export type TenantModelConfigRepository = {
     tenantId: string,
     settings: BulkModelSettingInput[],
   ) => Promise<void>;
+  getTenantModelConfig: (tenantId: string) => Promise<TenantModelConfig>;
 };

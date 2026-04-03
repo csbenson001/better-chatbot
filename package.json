@@ -48,6 +48,7 @@
     "check": "pnpm lint:fix && pnpm check-types && pnpm test"
   },
   "dependencies": {
+    "@ai-sdk/azure": "^3.0.50",
     "@ai-sdk/anthropic": "^2.0.56",
     "@ai-sdk/google": "^2.0.51",
     "@ai-sdk/groq": "^2.0.33",
