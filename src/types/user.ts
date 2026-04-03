@@ -56,6 +56,13 @@ export type UserRepository = {
     preferences: UserPreferences,
   ) => Promise<User>;
   getPreferences: (userId: string) => Promise<UserPreferences | null>;
+  updatePreferredModel: (
+    userId: string,
+    model: { provider: string; model: string } | null,
+  ) => Promise<void>;
+  getPreferredModel: (
+    userId: string,
+  ) => Promise<{ provider: string; model: string } | null>;
   getUserById: (userId: string) => Promise<BasicUserWithLastLogin | null>;
   getUserCount: () => Promise<number>;
   getUserStats: (userId: string) => Promise<{
