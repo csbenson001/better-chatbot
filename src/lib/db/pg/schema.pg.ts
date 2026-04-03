@@ -2969,3 +2969,44 @@ export const IssueReportSchema = pgTable(
 );
 
 export type IssueReportEntity = typeof IssueReportSchema.$inferSelect;
+
+// ─── Quick Prompts ────────────────────────────────────────────────────────────
+
+export const PromptCategoryTable = pgTable(
+  "prompt_category",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    label: text("label").notNull(),
+    icon: text("icon").notNull(),
+    sequence: integer("sequence").notNull(),
+    enabled: boolean("enabled").notNull().default(true),
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [index("prompt_category_sequence_idx").on(t.sequence)],
+);
+
+export const PromptItemTable = pgTable(
+  "prompt_item",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    categoryId: uuid("category_id")
+      .notNull()
+      .references(() => PromptCategoryTable.id, { onDelete: "cascade" }),
+    label: text("label").notNull(),
+    prompt: text("prompt").notNull(),
+    sequence: integer("sequence").notNull(),
+    enabled: boolean("enabled").notNull().default(true),
+    createdAt: timestamp("created_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    updatedAt: timestamp("updated_at")
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [index("prompt_item_category_id_idx").on(t.categoryId)],
+);
