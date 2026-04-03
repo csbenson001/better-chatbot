@@ -55,3 +55,15 @@ export const admin = ac.newRole({
   chat: [...Object.values(PERMISSION_TYPES)],
   temporaryChat: [...Object.values(PERMISSION_TYPES)],
 });
+
+// Superadmin role: all admin permissions plus exclusive system prompt vault access
+// IMPORTANT: This role must NEVER be grantable via any UI — assign in DB only
+export const superadmin = ac.newRole({
+  user: [...defaultStatements.user],
+  session: [...defaultStatements.session],
+  workflow: [...Object.values(PERMISSION_TYPES)],
+  agent: [...Object.values(PERMISSION_TYPES)],
+  mcp: [...Object.values(PERMISSION_TYPES)],
+  chat: [...Object.values(PERMISSION_TYPES)],
+  temporaryChat: [...Object.values(PERMISSION_TYPES)],
+});

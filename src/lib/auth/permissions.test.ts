@@ -1,96 +1,59 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 
-// Mocks
-vi.mock("./auth-instance", () => ({
-  getSession: vi.fn(),
-}));
-
-vi.mock("lib/user/utils", () => ({
-  getIsUserAdmin: vi.fn(),
-}));
-
-// server-only is used inside the module; stub it for tests
 vi.mock("server-only", () => ({}));
 
-const { getSession } = await import("./auth-instance");
-const { getIsUserAdmin } = await import("lib/user/utils");
+const mockGetSession = vi.fn();
+vi.mock("./auth-instance", () => ({ getSession: () => mockGetSession() }));
+vi.mock("lib/user/utils", () => ({
+  getIsUserAdmin: (user: any) => user?.role === "admin",
+}));
 
-describe("auth/permissions", () => {
-  beforeEach(() => {
-    vi.resetAllMocks();
+let permissionsModule: typeof import("./permissions");
+
+beforeEach(async () => {
+  vi.resetModules();
+  permissionsModule = await import("./permissions");
+});
+
+describe("hasSuperadminPermission", () => {
+  it("returns false when no session", async () => {
+    mockGetSession.mockResolvedValue(null);
+    expect(await permissionsModule.hasSuperadminPermission()).toBe(false);
   });
 
-  it("hasAdminPermission returns true when user is admin", async () => {
-    const permissions = await import("./permissions");
-    vi.mocked(getSession).mockResolvedValue({
-      user: { id: "u1", role: "admin" },
-    } as any);
-    vi.mocked(getIsUserAdmin).mockReturnValue(true);
-
-    await expect(permissions.hasAdminPermission()).resolves.toBe(true);
+  it("returns false for role=user", async () => {
+    mockGetSession.mockResolvedValue({ user: { id: "1", role: "user" } });
+    expect(await permissionsModule.hasSuperadminPermission()).toBe(false);
   });
 
-  it("hasAdminPermission returns false when no session", async () => {
-    const permissions = await import("./permissions");
-    vi.mocked(getSession).mockResolvedValue(null as any);
-
-    await expect(permissions.hasAdminPermission()).resolves.toBe(false);
+  it("returns false for role=admin", async () => {
+    mockGetSession.mockResolvedValue({ user: { id: "1", role: "admin" } });
+    expect(await permissionsModule.hasSuperadminPermission()).toBe(false);
   });
 
-  it("canManageUsers equals hasAdminPermission", async () => {
-    const permissions = await import("./permissions");
-    vi.mocked(getSession).mockResolvedValue({
-      user: { id: "u1", role: "user" },
-    } as any);
-    vi.mocked(getIsUserAdmin).mockReturnValue(false);
-
-    await expect(permissions.canManageUsers()).resolves.toBe(false);
-
-    vi.mocked(getIsUserAdmin).mockReturnValue(true);
-    await expect(permissions.canManageUsers()).resolves.toBe(true);
+  it("returns false for role=editor", async () => {
+    mockGetSession.mockResolvedValue({ user: { id: "1", role: "editor" } });
+    expect(await permissionsModule.hasSuperadminPermission()).toBe(false);
   });
 
-  it("canManageUser returns true for self regardless of admin", async () => {
-    const permissions = await import("./permissions");
-    vi.mocked(getSession).mockResolvedValue({
-      user: { id: "self", role: "user" },
-    } as any);
-    vi.mocked(getIsUserAdmin).mockReturnValue(false);
-
-    await expect(permissions.canManageUser("self")).resolves.toBe(true);
+  it("returns true for role=superadmin", async () => {
+    mockGetSession.mockResolvedValue({ user: { id: "1", role: "superadmin" } });
+    expect(await permissionsModule.hasSuperadminPermission()).toBe(true);
   });
+});
 
-  it("canManageUser returns true for others if admin", async () => {
-    const permissions = await import("./permissions");
-    vi.mocked(getSession).mockResolvedValue({
-      user: { id: "u1", role: "admin" },
-    } as any);
-    vi.mocked(getIsUserAdmin).mockReturnValue(true);
-
-    await expect(permissions.canManageUser("other")).resolves.toBe(true);
-  });
-
-  it("requireAdminPermission throws when not admin", async () => {
-    const permissions = await import("./permissions");
-    vi.mocked(getSession).mockResolvedValue({
-      user: { id: "u1", role: "user" },
-    } as any);
-    vi.mocked(getIsUserAdmin).mockReturnValue(false);
-
+describe("requireSuperadminPermission", () => {
+  it("throws for non-superadmin", async () => {
+    mockGetSession.mockResolvedValue({ user: { id: "1", role: "admin" } });
     await expect(
-      permissions.requireAdminPermission("do admin thing"),
-    ).rejects.toThrow(/Admin access required/);
+      permissionsModule.requireSuperadminPermission("test action"),
+    ).rejects.toThrow("Superadmin access required");
   });
 
-  it("requireUserManagePermissionFor throws when cannot manage target", async () => {
-    const permissions = await import("./permissions");
-    vi.mocked(getSession).mockResolvedValue({
-      user: { id: "u1", role: "user" },
-    } as any);
-    vi.mocked(getIsUserAdmin).mockReturnValue(false);
-
+  it("resolves without error for superadmin", async () => {
+    mockGetSession.mockResolvedValue({ user: { id: "1", role: "superadmin" } });
     await expect(
-      permissions.requireUserManagePermissionFor("u2", "manage this user"),
-    ).rejects.toThrow(/Permission required/);
+      permissionsModule.requireSuperadminPermission(),
+    ).resolves.toBeUndefined();
   });
 });

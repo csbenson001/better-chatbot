@@ -387,3 +387,30 @@ export async function canManageMCPServer(
 export async function canShareMCPServer(): Promise<boolean> {
   return await hasAdminPermission();
 }
+
+/**
+ * Check if user has superadmin permissions (system prompt vault access)
+ * Superadmin role is NEVER grantable via UI — database-only assignment
+ */
+export async function hasSuperadminPermission(): Promise<boolean> {
+  try {
+    const session = await getSession();
+    if (!session?.user) return false;
+    return session.user.role === "superadmin";
+  } catch (error) {
+    console.error("Error checking superadmin permission:", error);
+    return false;
+  }
+}
+
+/**
+ * Require superadmin permissions or throw error
+ */
+export async function requireSuperadminPermission(
+  action: string = "perform this action",
+): Promise<void> {
+  const hasPermission = await hasSuperadminPermission();
+  if (!hasPermission) {
+    throw new Error(`Unauthorized: Superadmin access required to ${action}`);
+  }
+}
