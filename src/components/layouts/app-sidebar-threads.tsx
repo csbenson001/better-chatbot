@@ -34,6 +34,7 @@ import { handleErrorWithToast } from "ui/shared-toast";
 import { useMemo, useState } from "react";
 
 import { useTranslations } from "next-intl";
+import { useStarred } from "@/hooks/queries/use-starred";
 import { TextShimmer } from "ui/text-shimmer";
 import { Tooltip, TooltipContent, TooltipTrigger } from "ui/tooltip";
 import { deduplicateByKey, groupBy } from "lib/utils";
@@ -59,6 +60,9 @@ export function AppSidebarThreads() {
   );
   // State to track if expanded view is active
   const [isExpanded, setIsExpanded] = useState(false);
+
+  const { starredThreads } = useStarred();
+  const starredThreadIds = new Set(starredThreads.map((t) => t.id));
 
   const { data: threadList, isLoading } = useSWR("/api/thread", fetcher, {
     onError: handleErrorWithToast,
@@ -254,6 +258,7 @@ export function AppSidebarThreads() {
                           side="right"
                           threadId={thread.id}
                           beforeTitle={thread.title}
+                          isStarred={starredThreadIds.has(thread.id)}
                         >
                           <div className="flex items-center data-[state=open]:bg-input! group-hover/thread:bg-input! rounded-lg">
                             <Tooltip delayDuration={1000}>

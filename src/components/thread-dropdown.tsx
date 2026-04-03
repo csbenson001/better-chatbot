@@ -8,6 +8,7 @@ import {
   FolderIcon,
   Loader,
   PencilLine,
+  Star,
   Trash,
   UploadIcon,
 } from "lucide-react";
@@ -47,9 +48,11 @@ import { addItemToArchiveAction } from "@/app/api/archive/actions";
 import { useShallow } from "zustand/shallow";
 import { ChatExportPopup } from "./export/chat-export-popup";
 import { MoveToProjectDialog } from "./project/move-to-project-dialog";
+import { useBookmark } from "@/hooks/queries/use-bookmark";
 
 type Props = PropsWithChildren<{
   threadId: string;
+  isStarred?: boolean;
   beforeTitle?: string;
   onDeleted?: () => void;
   side?: "top" | "bottom" | "left" | "right";
@@ -59,6 +62,7 @@ type Props = PropsWithChildren<{
 export function ThreadDropdown({
   threadId,
   children,
+  isStarred = false,
   beforeTitle,
   onDeleted,
   side,
@@ -76,6 +80,10 @@ export function ThreadDropdown({
   const [moveToProjectOpen, setMoveToProjectOpen] = useState(false);
 
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const { toggleBookmark, isLoading: isStarLoading } = useBookmark({
+    itemType: "thread",
+  });
 
   const handleUpdate = async (title: string) => {
     safe()
@@ -219,6 +227,27 @@ export function ThreadDropdown({
                 >
                   <FolderIcon className="text-foreground" />
                   <span className="mr-4">{t("Chat.Thread.moveToProject")}</span>
+                </CommandItem>
+                <CommandItem
+                  className="cursor-pointer"
+                  disabled={isStarLoading(threadId)}
+                  onClick={() =>
+                    toggleBookmark({ id: threadId, isBookmarked: isStarred })
+                  }
+                >
+                  <Star
+                    className={
+                      isStarred
+                        ? "fill-current text-yellow-400"
+                        : "text-foreground"
+                    }
+                  />
+                  <span className="mr-4">
+                    {isStarred ? "Remove from Starred" : "Add to Starred"}
+                  </span>
+                  {isStarLoading(threadId) && (
+                    <Loader className="ml-auto h-4 w-4 animate-spin" />
+                  )}
                 </CommandItem>
               </CommandGroup>
               <CommandSeparator />
