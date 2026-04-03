@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * Custom hook for debouncing function calls
@@ -26,4 +26,18 @@ export function useDebounce<T extends (...args: any[]) => any>(
   ) as T;
 
   return debouncedCallback;
+}
+
+/**
+ * Returns a debounced copy of `value` that only updates after `delay` ms of inactivity.
+ */
+export function useDebouncedValue<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+
+  return debouncedValue;
 }
