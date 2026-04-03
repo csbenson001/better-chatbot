@@ -2,6 +2,7 @@
 import { useState } from "react";
 import type { ProjectSummary } from "app-types/project";
 import { ProjectCard } from "./project-card";
+import { useStarred } from "@/hooks/queries/use-starred";
 import { NewProjectDialog } from "./new-project-dialog";
 import { Button } from "ui/button";
 import { Input } from "ui/input";
@@ -14,6 +15,8 @@ interface ProjectsGridProps {
 export function ProjectsGrid({ initialProjects }: ProjectsGridProps) {
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { starredProjects } = useStarred();
+  const starredProjectIds = new Set(starredProjects.map((p) => p.id));
 
   const filtered = initialProjects.filter(
     (p) =>
@@ -63,7 +66,11 @@ export function ProjectsGrid({ initialProjects }: ProjectsGridProps) {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {filtered.map((project) => (
-            <ProjectCard key={project.id} project={project} />
+            <ProjectCard
+              key={project.id}
+              project={project}
+              isStarred={starredProjectIds.has(project.id)}
+            />
           ))}
         </div>
       )}

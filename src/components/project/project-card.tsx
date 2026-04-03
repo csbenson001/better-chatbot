@@ -2,6 +2,7 @@
 import {
   FolderIcon,
   MoreHorizontalIcon,
+  Star,
   Trash2Icon,
   PencilIcon,
 } from "lucide-react";
@@ -12,18 +13,24 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "ui/dropdown-menu";
 import { Button } from "ui/button";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { useBookmark } from "@/hooks/queries/use-bookmark";
 
 interface ProjectCardProps {
   project: ProjectSummary;
+  isStarred?: boolean;
 }
 
-export function ProjectCard({ project }: ProjectCardProps) {
+export function ProjectCard({ project, isStarred = false }: ProjectCardProps) {
   const router = useRouter();
+  const { toggleBookmark, isLoading: isStarLoading } = useBookmark({
+    itemType: "project",
+  });
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -70,6 +77,19 @@ export function ProjectCard({ project }: ProjectCardProps) {
               <PencilIcon className="size-3.5 mr-2" />
               Edit
             </DropdownMenuItem>
+            <DropdownMenuItem
+              disabled={isStarLoading(project.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleBookmark({ id: project.id, isBookmarked: isStarred });
+              }}
+            >
+              <Star
+                className={`size-3.5 mr-2 ${isStarred ? "fill-current text-yellow-400" : ""}`}
+              />
+              {isStarred ? "Remove from Starred" : "Add to Starred"}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={handleDelete}
               className="text-destructive focus:text-destructive"
