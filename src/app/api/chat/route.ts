@@ -19,6 +19,7 @@ import {
   chatRepository,
   pluginRepository,
   projectRepository,
+  systemPromptRepository,
 } from "lib/db/repository";
 import { dedupePluginsById } from "lib/plugins/plugin-utils";
 import globalLogger from "logger";
@@ -355,6 +356,7 @@ export async function POST(request: Request) {
       toolChoice: toolChoice,
       toolCount: 0,
       chatModel: chatModel,
+      systemPromptVersion: undefined,
     };
 
     const stream = createUIMessageStream({
@@ -424,15 +426,27 @@ export async function POST(request: Request) {
           .map((v) => filterMcpServerCustomizations(MCP_TOOLS!, v))
           .orElse({});
 
+        // Load active system prompt from DB (falls back to hardcoded buildUserSystemPrompt if none)
+        const activeDbPrompt = await systemPromptRepository
+          .getActiveContent("default")
+          .catch(() => null);
+        if (activeDbPrompt) {
+          metadata.systemPromptVersion = activeDbPrompt.version;
+        }
+
         const contextualInjections = buildContextualInjections(messages);
 
-        const systemPrompt = mergeSystemPrompt(
+        const baseUserPrompt =
+          activeDbPrompt?.content ??
           buildUserSystemPrompt(
             session.user,
             userPreferences,
             agent,
             activePlugins,
-          ),
+          );
+
+        const systemPrompt = mergeSystemPrompt(
+          baseUserPrompt,
           buildMcpServerCustomizationsSystemPrompt(mcpServerCustomizations),
           !supportToolCall && buildToolCallUnsupportedModelSystemPrompt,
           projectContext?.instructions
