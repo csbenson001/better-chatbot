@@ -9,7 +9,8 @@ import {
   UIMessage,
 } from "ai";
 
-import { customModelProvider, isToolCallUnsupportedModel } from "lib/ai/models";
+import { isToolCallUnsupportedModel } from "lib/ai/models";
+import { getTenantModelProvider } from "lib/ai/tenant-model-provider";
 
 import { mcpClientsManager } from "lib/ai/mcp/mcp-manager";
 
@@ -60,6 +61,12 @@ import { buildExcelIngestionPreviewParts } from "@/lib/ai/ingest/excel-ingest";
 import { serverFileStorage } from "lib/file-storage";
 import { createExecutePythonTool } from "lib/ai/tools/code/execute-python-server";
 import type { E2BExecutionResult } from "lib/e2b/types";
+import {
+  parseExcelPreview,
+  formatExcelPreviewText,
+  transcribeExcelToCsv,
+} from "lib/file-ingest/excel";
+import { formatCsvPreviewText, parseCsvPreview } from "lib/file-ingest/csv";
 
 /**
  * Strip base64 images from execute_python tool results in the message history.
@@ -89,6 +96,63 @@ const logger = globalLogger.withDefaults({
   message: colorize("blackBright", `Chat API: `),
 });
 
+async function processStoredFileParts(f: {
+  storageKey: string;
+  contentType?: string;
+  filename?: string;
+}) {
+  try {
+    const url = await serverFileStorage.getSourceUrl(f.storageKey);
+    if (!url) return null;
+
+    const name = f.filename || "";
+    const cType = f.contentType || "";
+    const isExcel =
+      /\.(xlsx|xls)$/i.test(name) ||
+      cType ===
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+      cType === "application/vnd.ms-excel";
+    const isCsv =
+      /\.(csv)$/i.test(name) ||
+      cType === "text/csv" ||
+      cType === "application/csv";
+
+    if (isExcel || isCsv) {
+      const buffer = await serverFileStorage.download(f.storageKey);
+      if (isExcel) {
+        if (buffer.length < 100 * 1024) {
+          const text =
+            transcribeExcelToCsv(buffer, name) +
+            `\n\nIMPORTANT: To fully utilize this file, call execute_python with fileUrl="${url}" and fileName="${name}". The file will be available at /home/user/${name}.`;
+          return { type: "text" as const, text };
+        } else {
+          const preview = parseExcelPreview(buffer);
+          const text = formatExcelPreviewText(name, preview, url);
+          return { type: "text" as const, text };
+        }
+      } else {
+        if (buffer.length < 100 * 1024) {
+          const text = `<csv_document filename="${name}">\n${buffer.toString("utf-8")}\n</csv_document>\nIMPORTANT: To fully utilize this file, call execute_python with fileUrl="${url}" and fileName="${name}". The file will be available at /home/user/${name}.`;
+          return { type: "text" as const, text };
+        } else {
+          const preview = parseCsvPreview(buffer, { maxRows: 50, maxCols: 12 });
+          const text = formatCsvPreviewText(name, preview, url);
+          return { type: "text" as const, text };
+        }
+      }
+    }
+
+    return {
+      type: "file" as const,
+      url,
+      mediaType: f.contentType || "application/octet-stream",
+      filename: f.filename,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const json = await request.json();
@@ -111,7 +175,11 @@ export async function POST(request: Request) {
       activePluginId,
     } = chatApiSchemaRequestBodySchema.parse(json);
 
-    const model = customModelProvider.getModel(chatModel);
+    const tenantId =
+      request.headers.get("x-tenant-id") ??
+      "00000000-0000-0000-0000-000000000000";
+    const tenantProvider = await getTenantModelProvider(tenantId);
+    const model = tenantProvider.getModel(chatModel);
 
     let thread = await chatRepository.selectThreadDetails(id);
 
@@ -196,6 +264,16 @@ export async function POST(request: Request) {
         );
         if (exists) return;
 
+        const name = attachment.filename || "";
+        const mType = attachment.mediaType || "";
+        const isExcelOrCsv =
+          /\.(xlsx|xls|csv)$/i.test(name) ||
+          mType ===
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+          mType === "application/vnd.ms-excel" ||
+          mType === "text/csv";
+        if (isExcelOrCsv) return;
+
         if (attachment.type === "file") {
           attachmentParts.push({
             type: "file",
@@ -238,10 +316,6 @@ export async function POST(request: Request) {
     )?.agentId;
 
     const agent = await rememberAgentAction(agentId, session.user.id);
-
-    const tenantId =
-      request.headers.get("x-tenant-id") ??
-      "00000000-0000-0000-0000-000000000000";
 
     const enabledPlugins = await pluginRepository.listEnabledPluginsForUser(
       session.user.id,
@@ -415,20 +489,7 @@ export async function POST(request: Request) {
 
         if (projectFiles.length > 0) {
           const projectFileParts = await Promise.all(
-            projectFiles.map(async (f) => {
-              try {
-                const url = await serverFileStorage.getSourceUrl(f.storageKey);
-                if (!url) return null;
-                return {
-                  type: "file" as const,
-                  url,
-                  mediaType: f.contentType,
-                  filename: f.filename,
-                };
-              } catch {
-                return null;
-              }
-            }),
+            projectFiles.map(processStoredFileParts),
           );
           const validParts = projectFileParts.filter(
             (p): p is NonNullable<typeof p> => p !== null,
@@ -443,20 +504,7 @@ export async function POST(request: Request) {
 
         if (agentFiles.length > 0) {
           const agentFileParts = await Promise.all(
-            agentFiles.map(async (f) => {
-              try {
-                const url = await serverFileStorage.getSourceUrl(f.storageKey);
-                if (!url) return null;
-                return {
-                  type: "file" as const,
-                  url,
-                  mediaType: f.contentType,
-                  filename: f.filename,
-                };
-              } catch {
-                return null;
-              }
-            }),
+            agentFiles.map(processStoredFileParts),
           );
           const validAgentFileParts = agentFileParts.filter(
             (p): p is NonNullable<typeof p> => p !== null,
