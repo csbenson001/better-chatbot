@@ -26,6 +26,7 @@ import {
   buildMcpServerCustomizationsSystemPrompt,
   buildUserSystemPrompt,
   buildToolCallUnsupportedModelSystemPrompt,
+  buildContextualInjections,
 } from "lib/ai/prompts";
 import {
   chatApiSchemaRequestBodySchema,
@@ -423,6 +424,8 @@ export async function POST(request: Request) {
           .map((v) => filterMcpServerCustomizations(MCP_TOOLS!, v))
           .orElse({});
 
+        const contextualInjections = buildContextualInjections(messages);
+
         const systemPrompt = mergeSystemPrompt(
           buildUserSystemPrompt(
             session.user,
@@ -438,6 +441,7 @@ export async function POST(request: Request) {
           projectContext?.memory
             ? `Project memory (key facts from prior conversations):\n${projectContext.memory}`
             : false,
+          contextualInjections || false,
         );
 
         const IMAGE_TOOL: Record<string, Tool> = useImageTool
