@@ -49,11 +49,15 @@ export function createExecutePythonTool(threadId: string) {
 
       await refreshSession(threadId, sandbox.sandboxId);
 
-      const stdout = execution.logs.stdout.join("");
+      const rawStdout = execution.logs.stdout.join("");
       const stderr = execution.logs.stderr.join("");
       const images = execution.results
         .filter((r) => r.png)
         .map((r) => ({ base64: r.png!, format: "png" }));
+
+      // Strip ARTIFACT_TYPE: marker line — the renderer uses content type detection;
+      // the marker itself must not appear in the rendered HTML
+      const stdout = rawStdout.replace(/^ARTIFACT_TYPE:[^\n]*\n?/m, "");
 
       // Detect DOWNLOAD_FILE marker and upload to Vercel Blob
       const downloadMatch = stdout.match(/DOWNLOAD_FILE:([^\n\r]+)/);

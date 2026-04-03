@@ -20,8 +20,21 @@ export type ArtifactContentType =
 
 export function detectArtifactContentType(code: string): ArtifactContentType {
   const trimmed = code.trim();
+  // Explicit ARTIFACT_TYPE marker wins (AI can override detection)
+  const markerMatch = trimmed.match(/^ARTIFACT_TYPE:(\w+)/);
+  if (markerMatch) {
+    const t = markerMatch[1] as ArtifactContentType;
+    if (["html", "react", "svg", "mermaid", "markdown"].includes(t)) return t;
+  }
   if (trimmed.startsWith("<svg") || trimmed.startsWith("<SVG")) return "svg";
   if (trimmed.startsWith("<!DOCTYPE") || trimmed.startsWith("<html"))
+    return "html";
+  // Chart.js / Plotly output often starts with <div or <script without DOCTYPE
+  if (
+    trimmed.startsWith("<div") ||
+    trimmed.startsWith("<canvas") ||
+    trimmed.startsWith("<script")
+  )
     return "html";
   if (
     /^(graph |sequenceDiagram|gantt|erDiagram|flowchart |pie |mindmap|timeline|classDiagram)/m.test(
