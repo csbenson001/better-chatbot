@@ -3084,3 +3084,37 @@ export type TenantProviderKeyEntity =
   typeof TenantProviderKeySchema.$inferSelect;
 export type TenantModelSettingEntity =
   typeof TenantModelSettingSchema.$inferSelect;
+
+export const SystemPromptTable = pgTable(
+  "system_prompt",
+  {
+    id: uuid("id").primaryKey().notNull().defaultRandom(),
+    name: varchar("name", { length: 255 }).notNull(),
+    description: text("description"),
+    content: text("content").notNull(),
+    version: integer("version").notNull().default(1),
+    isActive: boolean("is_active").notNull().default(false),
+    createdBy: varchar("created_by", { length: 255 }).notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => ({
+    nameIdx: index("system_prompt_name_idx").on(table.name),
+    activeNameIdx: index("system_prompt_active_name_idx").on(
+      table.name,
+      table.isActive,
+    ),
+  }),
+);
+
+export const SystemPromptAuditTable = pgTable("system_prompt_audit", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  systemPromptId: uuid("system_prompt_id")
+    .notNull()
+    .references(() => SystemPromptTable.id),
+  version: integer("version").notNull(),
+  contentHash: varchar("content_hash", { length: 64 }).notNull(),
+  changedBy: varchar("changed_by", { length: 255 }).notNull(),
+  changedAt: timestamp("changed_at").notNull().defaultNow(),
+  action: varchar("action", { length: 50 }).notNull(),
+});
