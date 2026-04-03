@@ -75,10 +75,12 @@ export async function DELETE(request: Request) {
         { status: 400 },
       );
     }
-    await tenantModelConfigRepository.deleteProviderKey(
-      tenantId,
-      provider as "openai" | "anthropic" | "google" | "azure",
-    );
+    const providerEnum = z.enum(["openai", "anthropic", "google", "azure"]);
+    const parsed = providerEnum.safeParse(provider);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "invalid provider" }, { status: 400 });
+    }
+    await tenantModelConfigRepository.deleteProviderKey(tenantId, parsed.data);
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json(
