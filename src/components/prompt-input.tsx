@@ -104,7 +104,8 @@ export default function PromptInput({
   const [isUploadDropdownOpen, setIsUploadDropdownOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { uploadFiles } = useThreadFileUploader(threadId);
-  const { data: providers } = useChatModels();
+  const { data: chatModels } = useChatModels();
+  const providers = chatModels?.models;
   const { data: enabledPlugins = [] } = useEnabledPlugins();
 
   const [

@@ -125,7 +125,8 @@ export function ToolSelectDropdown({
 
   const t = useTranslations("Chat.Tool");
   const { isLoading } = useMcpList();
-  const { data: providers } = useChatModels();
+  const { data: chatModels } = useChatModels();
+  const providers = chatModels?.models;
   const [globalModel] = appStore(useShallow((state) => [state.chatModel]));
 
   const modelInfo = useMemo(() => {
