@@ -48,6 +48,7 @@ import { useMounted } from "@/hooks/use-mounted";
 import { getStorageManager } from "lib/browser-stroage";
 import { AnimatePresence, motion } from "framer-motion";
 import { useThreadFileUploader } from "@/hooks/use-thread-file-uploader";
+import { QuickPromptBar } from "./quick-prompt-bar";
 import { useFileDragOverlay } from "@/hooks/use-file-drag-overlay";
 import { ArtifactsPanel } from "./artifacts-panel";
 
@@ -517,6 +518,9 @@ export default function ChatBot({
               onFocus={isFirstTime ? undefined : handleFocus}
               projectName={projectName}
             />
+            {messages.length === 0 && (
+              <QuickPromptBar onPromptSelect={setInput} />
+            )}
           </div>
           <DeleteThreadPopup
             threadId={threadId}
