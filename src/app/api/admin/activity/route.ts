@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { platformRepository } from "lib/db/repository";
 import type { ActivityAction } from "app-types/platform";
+import { hasAdminPermission } from "lib/auth/permissions";
 
 export async function GET(req: NextRequest) {
+  if (!(await hasAdminPermission())) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const searchParams = req.nextUrl.searchParams;
   const tenantId = searchParams.get("tenantId");
   const userId = searchParams.get("userId") || undefined;
@@ -14,7 +18,7 @@ export async function GET(req: NextRequest) {
   if (!tenantId) {
     return NextResponse.json(
       { error: "tenantId is required" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -41,10 +45,10 @@ export async function GET(req: NextRequest) {
         totalPages: Math.ceil(total / limit),
       },
     });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Failed to fetch activity logs" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

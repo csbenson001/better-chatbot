@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { pgDb } from "lib/db/pg/db.pg";
 import { UserTable } from "lib/db/pg/schema.pg";
 import { desc, count, like, or } from "drizzle-orm";
+import { hasAdminPermission } from "lib/auth/permissions";
 
 export async function GET(req: NextRequest) {
+  if (!(await hasAdminPermission())) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const searchParams = req.nextUrl.searchParams;
   const search = searchParams.get("search") || "";
   const page = parseInt(searchParams.get("page") || "1");

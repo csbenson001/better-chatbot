@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { rbacRepository } from "lib/db/repository";
+import { hasAdminPermission } from "lib/auth/permissions";
 
 export async function GET(request: Request) {
+  if (!(await hasAdminPermission())) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const tenantId =
       request.headers.get("x-tenant-id") ??

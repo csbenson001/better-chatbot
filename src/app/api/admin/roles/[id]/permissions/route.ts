@@ -1,10 +1,14 @@
 import { NextResponse } from "next/server";
 import { rbacRepository } from "lib/db/repository";
+import { hasAdminPermission } from "lib/auth/permissions";
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  if (!(await hasAdminPermission())) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const { id } = await params;
     const permissions = await rbacRepository.selectPermissionsByRoleId(id);
@@ -21,6 +25,9 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  if (!(await hasAdminPermission())) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const { id } = await params;
     const tenantId =

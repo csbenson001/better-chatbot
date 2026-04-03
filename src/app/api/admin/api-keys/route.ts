@@ -2,8 +2,12 @@ import { NextResponse } from "next/server";
 import { createHash, randomUUID } from "crypto";
 import { rbacRepository } from "lib/db/repository";
 import { ApiKeyCreateSchema } from "app-types/rbac";
+import { hasAdminPermission } from "lib/auth/permissions";
 
 export async function GET(request: Request) {
+  if (!(await hasAdminPermission())) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const tenantId =
       request.headers.get("x-tenant-id") ??
@@ -19,6 +23,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  if (!(await hasAdminPermission())) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const tenantId =
       request.headers.get("x-tenant-id") ??

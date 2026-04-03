@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { rbacRepository } from "lib/db/repository";
 import { TrialCreateSchema } from "app-types/rbac";
+import { hasAdminPermission } from "lib/auth/permissions";
 
 export async function GET(_request: Request) {
+  if (!(await hasAdminPermission())) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const trials = await rbacRepository.selectAllTrials();
     return NextResponse.json({ data: trials });
@@ -15,6 +19,9 @@ export async function GET(_request: Request) {
 }
 
 export async function POST(request: Request) {
+  if (!(await hasAdminPermission())) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const body = await request.json();
     const data = TrialCreateSchema.parse(body);

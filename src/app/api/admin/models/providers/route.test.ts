@@ -1,5 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 
+vi.mock("lib/auth/permissions", () => ({
+  hasAdminPermission: vi.fn().mockResolvedValue(true),
+}));
+
 vi.mock("lib/db/repository", () => ({
   tenantModelConfigRepository: {
     getProviderKeys: vi.fn().mockResolvedValue([

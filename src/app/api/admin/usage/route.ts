@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { platformRepository } from "lib/db/repository";
+import { hasAdminPermission } from "lib/auth/permissions";
 
 export async function GET(req: NextRequest) {
+  if (!(await hasAdminPermission())) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   const searchParams = req.nextUrl.searchParams;
   const tenantId = searchParams.get("tenantId");
   const periodStart = searchParams.get("periodStart");
@@ -10,7 +14,7 @@ export async function GET(req: NextRequest) {
   if (!tenantId) {
     return NextResponse.json(
       { error: "tenantId is required" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -24,14 +28,14 @@ export async function GET(req: NextRequest) {
     const usage = await platformRepository.selectUsageSummary(
       tenantId,
       startDate,
-      endDate
+      endDate,
     );
 
     return NextResponse.json({ usage });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Failed to fetch usage data" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

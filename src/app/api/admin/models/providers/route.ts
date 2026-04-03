@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { tenantModelConfigRepository, maskApiKey } from "lib/db/repository";
 import type { TenantProviderKey } from "app-types/model-config";
+import { hasAdminPermission } from "lib/auth/permissions";
 
 const UpsertProviderSchema = z.object({
   provider: z.enum(["openai", "anthropic", "google", "azure"]),
@@ -18,6 +19,9 @@ function maskProvider(pk: TenantProviderKey) {
 }
 
 export async function GET(request: Request) {
+  if (!(await hasAdminPermission())) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const tenantId =
       request.headers.get("x-tenant-id") ??
@@ -33,6 +37,9 @@ export async function GET(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  if (!(await hasAdminPermission())) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const tenantId =
       request.headers.get("x-tenant-id") ??
@@ -63,6 +70,9 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  if (!(await hasAdminPermission())) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const tenantId =
       request.headers.get("x-tenant-id") ??

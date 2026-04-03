@@ -8,8 +8,12 @@ import {
   ConnectorSchema,
 } from "lib/db/pg/schema.pg";
 import { count, sql, gte, eq, and } from "drizzle-orm";
+import { hasAdminPermission } from "lib/auth/permissions";
 
 export async function GET() {
+  if (!(await hasAdminPermission())) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);

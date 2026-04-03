@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { tenantModelConfigRepository } from "lib/db/repository";
 import { customModelProvider } from "lib/ai/models";
+import { hasAdminPermission } from "lib/auth/permissions";
 
 const BulkUpdateSchema = z.object({
   updates: z.array(
@@ -15,6 +16,9 @@ const BulkUpdateSchema = z.object({
 });
 
 export async function GET(request: Request) {
+  if (!(await hasAdminPermission())) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const tenantId =
       request.headers.get("x-tenant-id") ??
@@ -52,6 +56,9 @@ export async function GET(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+  if (!(await hasAdminPermission())) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
   try {
     const tenantId =
       request.headers.get("x-tenant-id") ??
