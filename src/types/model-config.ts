@@ -8,7 +8,7 @@ export type TenantProviderKey = {
   enabled: boolean;
   azureEndpoint: string | null;
   azureDeploymentName: string | null;
-  azureApiVersion: string | null;
+  azureApiVersion: string;
   createdAt: Date;
   updatedAt: Date;
 };

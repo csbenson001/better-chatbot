@@ -9,6 +9,10 @@ import type {
   TenantProviderKey,
   TenantModelSetting,
 } from "app-types/model-config";
+import type {
+  TenantProviderKeyEntity,
+  TenantModelSettingEntity,
+} from "../schema.pg";
 
 export function maskApiKey(apiKey: string): string {
   if (apiKey.length === 4) return apiKey;
@@ -24,7 +28,7 @@ export const pgTenantModelConfigRepository: TenantModelConfigRepository = {
       .select()
       .from(TenantProviderKeySchema)
       .where(eq(TenantProviderKeySchema.tenantId, tenantId));
-    return results as TenantProviderKey[];
+    return results as TenantProviderKeyEntity[] as TenantProviderKey[];
   },
 
   async getProviderKey(tenantId, provider) {
@@ -37,7 +41,7 @@ export const pgTenantModelConfigRepository: TenantModelConfigRepository = {
           eq(TenantProviderKeySchema.provider, provider),
         ),
       );
-    return (result as TenantProviderKey) ?? null;
+    return (result as TenantProviderKeyEntity as TenantProviderKey) ?? null;
   },
 
   async upsertProviderKey(tenantId, provider, data) {
@@ -68,7 +72,7 @@ export const pgTenantModelConfigRepository: TenantModelConfigRepository = {
         },
       })
       .returning();
-    return result as TenantProviderKey;
+    return result as TenantProviderKeyEntity as TenantProviderKey;
   },
 
   async deleteProviderKey(tenantId, provider) {
@@ -89,7 +93,7 @@ export const pgTenantModelConfigRepository: TenantModelConfigRepository = {
       .select()
       .from(TenantModelSettingSchema)
       .where(eq(TenantModelSettingSchema.tenantId, tenantId));
-    return results as TenantModelSetting[];
+    return results as TenantModelSettingEntity[] as TenantModelSetting[];
   },
 
   async upsertModelSetting(tenantId, provider, modelName, data) {
@@ -116,7 +120,7 @@ export const pgTenantModelConfigRepository: TenantModelConfigRepository = {
         },
       })
       .returning();
-    return result as TenantModelSetting;
+    return result as TenantModelSettingEntity as TenantModelSetting;
   },
 
   async setDefaultModel(tenantId, provider, modelName) {
