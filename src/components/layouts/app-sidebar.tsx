@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { AppSidebarMenus } from "./app-sidebar-menus";
 import { AppSidebarAgents } from "./app-sidebar-agents";
 import { AppSidebarThreads } from "./app-sidebar-threads";
+import { AppSidebarStarred } from "./app-sidebar-starred";
 import { SidebarHeaderShared } from "./sidebar-header";
 
 import { isShortcutEvent, Shortcuts } from "lib/keyboard-shortcuts";
@@ -51,6 +52,7 @@ export function AppSidebar({
       <SidebarContent className="mt-2 overflow-hidden relative">
         <div className="flex flex-col overflow-y-auto">
           <AppSidebarMenus user={user} />
+          <AppSidebarStarred />
           <AppSidebarAgents userRole={userRole} />
           <AppSidebarThreads />
         </div>
