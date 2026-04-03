@@ -460,6 +460,8 @@ Decline requests to create malware, exploits, trojans, or tools designed for una
     "pretend you are",
     "you are now",
     " dan ",
+    " dan,",
+    " dan.",
     "do anything now",
     "your true self",
     "no restrictions",
