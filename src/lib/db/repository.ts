@@ -58,3 +58,6 @@ export const stateResearchRepository = pgStateResearchRepository;
 
 import { pgPluginRepository } from "./pg/repositories/plugin-repository.pg";
 export const pluginRepository = pgPluginRepository;
+
+import { pgPromptRepository } from "./pg/repositories/prompt-repository.pg";
+export const promptRepository = pgPromptRepository;
