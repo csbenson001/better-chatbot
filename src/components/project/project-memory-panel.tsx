@@ -6,6 +6,7 @@ import {
   PencilIcon,
   CheckIcon,
   XIcon,
+  Trash2Icon,
 } from "lucide-react";
 import { Button } from "ui/button";
 import { Textarea } from "ui/textarea";
@@ -25,6 +26,26 @@ export function ProjectMemoryPanel({
   const [draft, setDraft] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
+  const patchMemory = async (value: string, successMsg: string) => {
+    setIsSaving(true);
+    try {
+      const res = await fetch(`/api/projects/${projectId}/memory`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ memory: value }),
+      });
+      if (!res.ok) throw new Error();
+      setMemory(value);
+      setIsEditing(false);
+      setDraft("");
+      toast.success(successMsg);
+    } catch {
+      toast.error("Failed to update memory");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const startEdit = () => {
     setDraft(memory);
     setIsEditing(true);
@@ -35,23 +56,9 @@ export function ProjectMemoryPanel({
     setDraft("");
   };
 
-  const saveMemory = async () => {
-    setIsSaving(true);
-    try {
-      const res = await fetch(`/api/projects/${projectId}/memory`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ memory: draft }),
-      });
-      if (!res.ok) throw new Error();
-      setMemory(draft);
-      setIsEditing(false);
-      toast.success("Memory updated");
-    } catch {
-      toast.error("Failed to update memory");
-    } finally {
-      setIsSaving(false);
-    }
+  const handleClear = async () => {
+    if (!confirm("Clear all project memory? This cannot be undone.")) return;
+    await patchMemory("", "Memory cleared");
   };
 
   return (
@@ -66,6 +73,18 @@ export function ProjectMemoryPanel({
             <LockIcon className="size-2.5" />
             Only you
           </div>
+          {!isEditing && memory && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-6"
+              onClick={handleClear}
+              disabled={isSaving}
+              title="Clear memory"
+            >
+              <Trash2Icon className="size-3 text-muted-foreground" />
+            </Button>
+          )}
           {!isEditing && (
             <Button
               variant="ghost"
@@ -96,14 +115,18 @@ export function ProjectMemoryPanel({
             >
               <XIcon className="size-3 mr-1" /> Cancel
             </Button>
-            <Button size="sm" onClick={saveMemory} disabled={isSaving}>
+            <Button
+              size="sm"
+              onClick={() => patchMemory(draft, "Memory updated")}
+              disabled={isSaving}
+            >
               <CheckIcon className="size-3 mr-1" /> Save
             </Button>
           </div>
         </div>
       ) : (
         <p className="text-xs text-muted-foreground leading-relaxed">
-          {memory || "Project memory will appear here after a few chats."}
+          {memory || "Project memory will show here after a few chats."}
         </p>
       )}
     </div>
