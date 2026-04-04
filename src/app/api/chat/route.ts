@@ -10,6 +10,7 @@ import {
 } from "ai";
 
 import { isToolCallUnsupportedModel } from "lib/ai/models";
+import { isMemoryWorthyExchange } from "lib/ai/memory-utils";
 import { getTenantModelProvider } from "lib/ai/tenant-model-provider";
 
 import { mcpClientsManager } from "lib/ai/mcp/mcp-manager";
@@ -603,6 +604,12 @@ export async function POST(request: Request) {
                   .map((p) => (p as { type: "text"; text: string }).text)
                   .join(""),
               }));
+
+              const userText =
+                lastExchange.find((m) => m.role === "user")?.text ?? "";
+              const assistantText =
+                lastExchange.find((m) => m.role === "assistant")?.text ?? "";
+              if (!isMemoryWorthyExchange(userText, assistantText)) return;
 
               const { generateText } = await import("ai");
               const { text: newMemory } = await generateText({
