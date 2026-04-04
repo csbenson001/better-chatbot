@@ -29,6 +29,15 @@ export async function PUT(
   if (!session?.user.id) return new Response("Unauthorized", { status: 401 });
 
   const data = await request.json();
+  if (
+    typeof data.instructions === "string" &&
+    data.instructions.length > 6000
+  ) {
+    return Response.json(
+      { error: "Instructions must be 6,000 characters or fewer" },
+      { status: 400 },
+    );
+  }
   const allowedFields = ["name", "description", "instructions"] as const;
   const update: Record<string, string | null> = {};
   for (const field of allowedFields) {

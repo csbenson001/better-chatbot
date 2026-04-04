@@ -4,6 +4,9 @@ import { ListIcon, PlusIcon, PencilIcon, CheckIcon, XIcon } from "lucide-react";
 import { Button } from "ui/button";
 import { Textarea } from "ui/textarea";
 import { toast } from "sonner";
+import { cn } from "lib/utils";
+
+const MAX_INSTRUCTIONS = 6000;
 
 interface ProjectInstructionsPanelProps {
   projectId: string;
@@ -30,6 +33,12 @@ export function ProjectInstructionsPanel({
   };
 
   const saveInstructions = async () => {
+    if (draft.length > MAX_INSTRUCTIONS) {
+      toast.error(
+        `Instructions must be ${MAX_INSTRUCTIONS.toLocaleString()} characters or fewer`,
+      );
+      return;
+    }
     setIsSaving(true);
     try {
       const res = await fetch(`/api/projects/${projectId}`, {
@@ -47,6 +56,8 @@ export function ProjectInstructionsPanel({
       setIsSaving(false);
     }
   };
+
+  const isOverLimit = draft.length > MAX_INSTRUCTIONS;
 
   return (
     <div>
@@ -76,27 +87,46 @@ export function ProjectInstructionsPanel({
           <Textarea
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            className="text-xs min-h-[120px] resize-none"
-            placeholder="Add instructions for this project..."
+            className={cn(
+              "text-xs min-h-[120px] resize-none",
+              isOverLimit &&
+                "border-destructive focus-visible:ring-destructive",
+            )}
+            placeholder="Add instructions to tailor responses for all chats in this project..."
           />
-          <div className="flex items-center gap-1.5 justify-end">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={cancelEdit}
-              disabled={isSaving}
+          <div className="flex items-center justify-between">
+            <span
+              className={cn(
+                "text-xs",
+                isOverLimit ? "text-destructive" : "text-muted-foreground/60",
+              )}
             >
-              <XIcon className="size-3 mr-1" /> Cancel
-            </Button>
-            <Button size="sm" onClick={saveInstructions} disabled={isSaving}>
-              <CheckIcon className="size-3 mr-1" /> Save
-            </Button>
+              {draft.length.toLocaleString()} /{" "}
+              {MAX_INSTRUCTIONS.toLocaleString()}
+            </span>
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={cancelEdit}
+                disabled={isSaving}
+              >
+                <XIcon className="size-3 mr-1" /> Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={saveInstructions}
+                disabled={isSaving || isOverLimit}
+              >
+                <CheckIcon className="size-3 mr-1" /> Save
+              </Button>
+            </div>
           </div>
         </div>
       ) : (
         <p className="text-xs text-muted-foreground leading-relaxed">
           {instructions ||
-            "No instructions yet. Add custom instructions for all chats in this project."}
+            "Add instructions to tailor Claude's responses for all chats in this project."}
         </p>
       )}
     </div>
