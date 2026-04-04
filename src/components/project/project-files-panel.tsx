@@ -6,6 +6,22 @@ import { toast } from "sonner";
 import type { ProjectFile } from "app-types/project";
 import { cn } from "lib/utils";
 
+const MAX_FILES = 10;
+const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+const ACCEPTED_TYPES = [
+  "application/pdf",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "text/plain",
+  "text/csv",
+  "text/markdown",
+  "application/json",
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "image/webp",
+];
+const ACCEPT_ATTR = ".pdf,.docx,.txt,.csv,.md,.json,.png,.jpg,.jpeg,.gif,.webp";
+
 interface ProjectFilesPanelProps {
   projectId: string;
   initialFiles: ProjectFile[];
@@ -26,7 +42,28 @@ export function ProjectFilesPanel({
   const [isDragOver, setIsDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const validateFile = (file: File): string | null => {
+    if (files.length >= MAX_FILES)
+      return `Maximum ${MAX_FILES} files per project`;
+    if (file.size > MAX_FILE_SIZE_BYTES)
+      return `"${file.name}" exceeds the 10 MB limit`;
+    if (
+      !ACCEPTED_TYPES.includes(file.type) &&
+      !ACCEPT_ATTR.split(",").some((ext) =>
+        file.name.toLowerCase().endsWith(ext),
+      )
+    ) {
+      return `"${file.name}" is not a supported file type`;
+    }
+    return null;
+  };
+
   const uploadFile = async (file: File) => {
+    const error = validateFile(file);
+    if (error) {
+      toast.error(error);
+      return;
+    }
     setIsUploading(true);
     try {
       const formData = new FormData();
@@ -35,12 +72,17 @@ export function ProjectFilesPanel({
         method: "POST",
         body: formData,
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error((body as { error?: string }).error ?? "Upload failed");
+      }
       const newFile: ProjectFile = await res.json();
       setFiles((prev) => [...prev, newFile]);
       toast.success(`Uploaded ${file.name}`);
-    } catch {
-      toast.error(`Failed to upload ${file.name}`);
+    } catch (err: unknown) {
+      toast.error(
+        err instanceof Error ? err.message : `Failed to upload ${file.name}`,
+      );
     } finally {
       setIsUploading(false);
     }
@@ -67,19 +109,27 @@ export function ProjectFilesPanel({
     for (const file of dropped) await uploadFile(file);
   };
 
+  const atLimit = files.length >= MAX_FILES;
+
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <FileIcon className="size-3.5 text-muted-foreground" />
           <span className="text-sm font-semibold">Files</span>
+          {files.length > 0 && (
+            <span className="text-xs text-muted-foreground/60">
+              {files.length}/{MAX_FILES}
+            </span>
+          )}
         </div>
         <Button
           variant="ghost"
           size="icon"
           className="size-6"
           onClick={() => inputRef.current?.click()}
-          disabled={isUploading}
+          disabled={isUploading || atLimit}
+          title={atLimit ? `Maximum ${MAX_FILES} files reached` : "Upload file"}
         >
           <PlusIcon className="size-3" />
         </Button>
@@ -88,6 +138,7 @@ export function ProjectFilesPanel({
           type="file"
           className="hidden"
           multiple
+          accept={ACCEPT_ATTR}
           onChange={(e) => {
             const selected = Array.from(e.target.files ?? []);
             selected.forEach(uploadFile);
@@ -121,25 +172,35 @@ export function ProjectFilesPanel({
         </div>
       )}
 
-      <div
-        className={cn(
-          "flex flex-col items-center justify-center rounded-lg border border-dashed border-border/60 p-4 text-center transition-colors cursor-pointer",
-          isDragOver && "border-yale-blue bg-yale-blue/10",
-          isUploading && "opacity-50 pointer-events-none",
-        )}
-        onDragOver={(e) => {
-          e.preventDefault();
-          setIsDragOver(true);
-        }}
-        onDragLeave={() => setIsDragOver(false)}
-        onDrop={handleDrop}
-        onClick={() => inputRef.current?.click()}
-      >
-        <UploadIcon className="size-5 text-muted-foreground/40 mb-2" />
-        <p className="text-xs text-muted-foreground/60 leading-relaxed">
-          {isUploading ? "Uploading..." : "Drop files or click to upload"}
+      {!atLimit && (
+        <div
+          className={cn(
+            "flex flex-col items-center justify-center rounded-lg border border-dashed border-border/60 p-6 text-center transition-colors cursor-pointer",
+            isDragOver && "border-yale-blue bg-yale-blue/10",
+            isUploading && "opacity-50 pointer-events-none",
+          )}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragOver(true);
+          }}
+          onDragLeave={() => setIsDragOver(false)}
+          onDrop={handleDrop}
+          onClick={() => inputRef.current?.click()}
+        >
+          <UploadIcon className="size-5 text-muted-foreground/40 mb-2" />
+          <p className="text-xs text-muted-foreground/60 leading-relaxed">
+            {isUploading
+              ? "Uploading..."
+              : "Add PDFs, documents, or other text to reference in this project."}
+          </p>
+        </div>
+      )}
+
+      {atLimit && (
+        <p className="text-xs text-muted-foreground/60 text-center py-2">
+          Maximum {MAX_FILES} files reached. Delete a file to upload more.
         </p>
-      </div>
+      )}
     </div>
   );
 }
