@@ -11,7 +11,7 @@ interface ProjectSidebarProps {
 
 export function ProjectSidebar({ project, files }: ProjectSidebarProps) {
   return (
-    <aside className="w-72 shrink-0 border-l border-border/60 bg-sidebar p-4 flex flex-col gap-4 overflow-y-auto">
+    <aside className="w-[420px] shrink-0 border-l border-border/60 bg-sidebar p-4 flex flex-col gap-4 overflow-y-auto">
       <ProjectMemoryPanel projectId={project.id} memory={project.memory} />
       <Separator />
       <ProjectInstructionsPanel
